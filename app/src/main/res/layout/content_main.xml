@@ -8,4 +8,13 @@
     tools:context="com.anedma.nightspot.MainActivity"
     tools:showIn="@layout/activity_main">
 
+    <Button
+        android:id="@+id/button_prueba"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PRUEBA"
+        android:layout_marginLeft="148dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp" />
 </android.support.constraint.ConstraintLayout>

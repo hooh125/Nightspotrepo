@@ -3,20 +3,21 @@ package com.anedma.nightspot;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.anedma.nightspot.database.FingerprintDbHelper;
 import com.gracenote.gnsdk.GnException;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private Activity activity;
-    private final String CLIENT_ID = "933788263";
-    private final String CLIENT_TAG = "A8B4ECE6DAE23A832C82CB041EAE6EBF";
-    private String gnsdkLogFilename = "apiLog.txt";
+    private FingerprintDbHelper dbHelper;
     private GracenoteApiController controller;
 
     @Override
@@ -24,7 +25,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         activity = this;
         context = this.getApplicationContext();
+        dbHelper = new FingerprintDbHelper(context);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = new Toolbar(this);
+        setSupportActionBar(toolbar);
 
         try {
             controller = GracenoteApiController.getInstance(getApplicationContext(), activity);
@@ -47,13 +51,11 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         controller.startAudioProcessing();
-        System.out.println("Llamada a onResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        System.out.println("Llamada a onPause");
         controller.stopAudioProcessing();
     }
 }

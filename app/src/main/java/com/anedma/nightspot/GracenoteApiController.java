@@ -5,6 +5,9 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.anedma.nightspot.database.FingerprintDbHelper;
+import com.anedma.nightspot.dto.Fingerprint;
+import com.anedma.nightspot.exception.FingerprintInsertException;
 import com.gracenote.gnsdk.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +35,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     private GnUser gnUser;
     private GnMusicIdStream gnMusicIdStream;
     private IGnAudioSource gnMicrophone;
+    private GnLocale gnLocale;
     private GnLog gnLog;
     private List<GnMusicId> idObjects				= new ArrayList<>();
     private List<GnMusicIdFile>			fileIdObjects			= new ArrayList<>();
@@ -48,6 +52,13 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         GnLookupLocalStream.enable();
         Thread ingestThread = new Thread( new LocalBundleIngestRunnable(context) );
         ingestThread.start();
+        gnLocale =
+                new GnLocale(GnLocaleGroup.kLocaleGroupMusic,
+                        GnLanguage.kLanguageEnglish,
+                        GnRegion.kRegionGlobal,
+                        GnDescriptor.kDescriptorDefault,
+                        gnUser);
+        gnLocale.setGroupDefault();
         gnMicrophone = new AudioVisualizeAdapter( new GnMic() );
         gnMusicIdStream = new GnMusicIdStream( gnUser, GnMusicIdStreamPreset.kPresetMicrophone, this);
         gnMusicIdStream.options().lookupData(GnLookupData.kLookupDataContent, true);
@@ -56,14 +67,14 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         streamIdObjects.add( gnMusicIdStream );
     }
 
-    public static GracenoteApiController getInstance(Context context, Activity activity) throws GnException {
+    static GracenoteApiController getInstance(Context context, Activity activity) throws GnException {
         if(instance == null) {
             instance = new GracenoteApiController(context, activity);
         }
         return instance;
     }
 
-    public void startAudioProcessing() {
+    void startAudioProcessing() {
         if ( gnMusicIdStream != null ) {
 
             // Create a thread to process the data pulled from GnMic
@@ -75,16 +86,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         }
     }
 
-    public void startIdentify() {
-        try {
-            gnMusicIdStream.identifyAlbumAsync();
-            lastLookup_startTime = SystemClock.elapsedRealtime();
-        } catch (GnException e) {
-            Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ", " + e.errorAPI() + ": " +  e.errorDescription() );
-        }
-    }
-
-    public void stopAudioProcessing() {
+    void stopAudioProcessing() {
         if ( gnMusicIdStream != null ) {
 
             try {
@@ -104,6 +106,15 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
             }
 
+        }
+    }
+
+    void startIdentify() {
+        try {
+            gnMusicIdStream.identifyAlbumAsync();
+            lastLookup_startTime = SystemClock.elapsedRealtime();
+        } catch (GnException e) {
+            Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ", " + e.errorAPI() + ": " +  e.errorDescription() );
         }
     }
 
@@ -135,7 +146,6 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         return assetString;
     }
 
-
     @Override
     public void localeUpdateNeeded(GnLocale gnLocale) {
 
@@ -163,14 +173,22 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
     @Override
     public void musicIdStreamAlbumResult(GnResponseAlbums gnResponseAlbums, IGnCancellable iGnCancellable) {
-        Log.d("RESPONSE", "Parece que ha habido una respuesta de la API: " + gnResponseAlbums.toString());
+        Log.d("RESPONSE", "Gracenote ha devuelto " + gnResponseAlbums.resultCount());
         if(gnResponseAlbums.resultCount() > 0) {
             GnAlbumIterator iterator = gnResponseAlbums.albums().getIterator();
             while(iterator.hasNext()) {
                 try {
-                    GnAlbum album = iterator.next();
-                    Log.d("MATCH", "Se ha encontrado la cancion del artista: " + album.artist().name().display());
-                } catch (GnException e) {
+                    GnAlbum gnAlbum = iterator.next();
+                    Log.d("MATCH", "Se ha encontrado la cancion del artista: " + gnAlbum.artist().name().display());
+                    String artist = gnAlbum.artist().name().display();
+                    String song = gnAlbum.trackMatched().title().display();
+                    String genre = gnAlbum.trackMatched().genre(GnDataLevel.kDataLevelInvalid);
+                    String album = gnAlbum.title().display();
+                    Fingerprint fp = new Fingerprint(artist, song, genre, album);
+                    FingerprintDbHelper dbHelper = new FingerprintDbHelper(context);
+                    dbHelper.insertFingerprint(fp);
+                    dbHelper.close();
+                } catch (GnException | FingerprintInsertException e) {
                     e.printStackTrace();
                 }
             }

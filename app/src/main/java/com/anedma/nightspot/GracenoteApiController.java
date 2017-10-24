@@ -28,6 +28,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     private static final String 				gnsdkClientTag 			= "A8B4ECE6DAE23A832C82CB041EAE6EBF";
     private static final String 				gnsdkLicenseFilename 	= "license.txt";
     private static final String appString = "NightSpot";
+    private boolean isProcessing = false;
 
 
     // Gracenote objects
@@ -110,6 +111,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     }
 
     void startIdentify() {
+        isProcessing = true;
         try {
             gnMusicIdStream.identifyAlbumAsync();
             lastLookup_startTime = SystemClock.elapsedRealtime();
@@ -193,11 +195,16 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                 }
             }
         }
+        isProcessing = false;
+    }
+
+    public boolean isProcessing() {
+        return isProcessing;
     }
 
     @Override
     public void musicIdStreamIdentifyCompletedWithError(GnError gnError) {
-
+        isProcessing = false;
     }
 
     @Override

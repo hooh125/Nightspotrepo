@@ -8,23 +8,31 @@
     tools:context="com.anedma.nightspot.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <Button
-        android:id="@+id/button_prueba"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="PRUEBA"
-        android:layout_marginLeft="148dp"
+    <Switch
+        android:id="@+id/switch_fingerprint"
+        android:layout_width="155dp"
+        android:layout_height="27dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="25dp"
+        android:checked="false"
+        android:splitTrack="false"
+        android:text="@string/status_stopped"
+        android:textAlignment="viewStart"
+        android:textColor="@color/colorAccent"
+        android:textOff="@string/status_stopped"
+        android:textOn="@string/status_started"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="89dp"
-        android:layout_marginStart="148dp" />
+        tools:checked="false" />
 
-    <TextView
-        android:id="@+id/tv_songName"
-        android:layout_width="368dp"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="33dp" />
+    <ListView
+        android:id="@+id/lv_fingerprints"
+        android:layout_width="0dp"
+        android:layout_height="394dp"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="128dp" />
+
 </android.support.constraint.ConstraintLayout>

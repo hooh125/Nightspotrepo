@@ -5,20 +5,16 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import com.anedma.nightspot.database.FingerprintDbHelper;
-import com.gracenote.gnsdk.GnException;
-
 public class MainActivity extends AppCompatActivity {
 
     private Context context;
     private Activity activity;
     private FingerprintDbHelper dbHelper;
-    private GracenoteApiController controller;
+    private FingerprinterThread fingerprintThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,19 +26,22 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = new Toolbar(this);
         setSupportActionBar(toolbar);
 
-        try {
-            controller = GracenoteApiController.getInstance(getApplicationContext(), activity);
-        } catch (GnException e) {
-            e.printStackTrace();
-        }
-
-        TextView tv_songName = (TextView) findViewById(R.id.tv_songName);
-        Button botonPrueba = (Button) findViewById(R.id.button_prueba);
-        botonPrueba.setOnClickListener(new View.OnClickListener() {
+        Switch switch_fingerprint = (Switch) findViewById(R.id.switch_fingerprint);
+        switch_fingerprint.setEnabled(true);
+        fingerprintThread = new FingerprinterThread(this);
+        switch_fingerprint.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                Log.d("DEBUG", "El botón se ha presionado correctamente");
-                controller.startIdentify();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    if(!fingerprintThread.isAlive()) {
+                        fingerprintThread = new FingerprinterThread(activity);
+                    }
+                    fingerprintThread.start();
+                    buttonView.setText(R.string.status_started);
+                } else if(fingerprintThread.isAlive()) {
+                    fingerprintThread.interrupt();
+                    buttonView.setText(R.string.status_stopped);
+                }
             }
         });
     }
@@ -50,12 +49,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        controller.startAudioProcessing();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        controller.stopAudioProcessing();
     }
 }

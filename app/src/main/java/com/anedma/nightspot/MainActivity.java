@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         Switch switch_fingerprint = (Switch) findViewById(R.id.switch_fingerprint);
         switch_fingerprint.setEnabled(true);
-        fingerprintThread = new FingerprinterThread(this);
+        /*fingerprintThread = new FingerprinterThread(this);
         switch_fingerprint.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        */
     }
 
     @Override

@@ -4,4 +4,6 @@
     <string name="status_started">Started</string>
     <string name="status_stopped">Stopped</string>
     <string name="button_start">Fingerprint</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
 </resources>

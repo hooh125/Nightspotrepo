@@ -1,36 +1,38 @@
 package com.anedma.nightspot;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
-import com.anedma.nightspot.database.FingerprintDbHelper;
+import android.view.MenuItem;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.anedma.nightspot.database.FingerprintDbHelper;
+
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSION_REQUEST_LOCATION = 1;
-    private Context context;
-    private Activity activity;
     private FingerprintDbHelper dbHelper;
     private FingerprinterThread fingerprintThread;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        activity = this;
-        context = this.getApplicationContext();
-        dbHelper = new FingerprintDbHelper(context);
+        dbHelper = new FingerprintDbHelper(getApplicationContext());
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = new Toolbar(this);
-        setSupportActionBar(toolbar);
+        mToolbar =  findViewById(R.id.my_toolbar);
+        setSupportActionBar(mToolbar);
+        setupNavigationDrawer();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -55,6 +57,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         */
+    }
+
+    private void setupNavigationDrawer() {
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        mDrawerToggle.onConfigurationChanged(newConfig);
+        super.onConfigurationChanged(newConfig);
     }
 
     @Override

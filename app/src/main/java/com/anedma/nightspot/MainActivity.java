@@ -1,16 +1,22 @@
 package com.anedma.nightspot;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 
 import com.anedma.nightspot.database.FingerprintDbHelper;
-public class MainActivity extends AppCompatActivity {
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private static final int PERMISSION_REQUEST_LOCATION = 1;
     private Context context;
     private Activity activity;
     private FingerprintDbHelper dbHelper;
@@ -26,9 +32,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = new Toolbar(this);
         setSupportActionBar(toolbar);
 
-        Switch switch_fingerprint = (Switch) findViewById(R.id.switch_fingerprint);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        /*Switch switch_fingerprint = (Switch) findViewById(R.id.switch_fingerprint);
         switch_fingerprint.setEnabled(true);
-        /*fingerprintThread = new FingerprinterThread(this);
+        fingerprintThread = new FingerprinterThread(this);
         switch_fingerprint.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -55,5 +65,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_REQUEST_LOCATION);
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        map.setMyLocationEnabled(true);
     }
 }

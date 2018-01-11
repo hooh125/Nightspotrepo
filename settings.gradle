@@ -1,1 +1,1 @@
-include ':app', ':spotifylogin'
+include ':app'

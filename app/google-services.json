@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "271752299344",
+    "project_id": "nightspot-1515498553796"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:271752299344:android:2901a2e03169b8f1",
+        "android_client_info": {
+          "package_name": "com.anedma.nightspot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "271752299344-mk7o0m0pok9835cj9se4ge4n2or67t98.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "271752299344-1hc1rp2ib59niu9g17dj7g29590ufq24.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anedma.nightspot",
+            "certificate_hash": "ea35f12c1fcb5ffe50e63796bce483442c497123"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvXry_INfmgTPZh0AwgH9YPzwVdnTUJwY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

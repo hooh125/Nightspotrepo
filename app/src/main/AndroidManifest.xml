@@ -37,6 +37,9 @@
             android:value="AIzaSyBPfy8DGr8bsQNsgSBK9tDWAOK5L7btxpw" />
 
         <activity android:name=".activities.LoginActivity"></activity>
+        <activity
+            android:name="com.spotify.sdk.android.authentication.LoginActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
     </application>
 
 </manifest>

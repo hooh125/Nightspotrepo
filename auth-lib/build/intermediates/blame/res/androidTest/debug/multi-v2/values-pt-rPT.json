@@ -1,0 +1,49 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\Users\\a-edu\\StudioProjects\\Nightspotrepo\\auth-lib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-pt-rPT\\values-pt-rPT.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\a-edu\\.gradle\\caches\\transforms-1\\files-1.1\\support-compat-27.0.2.aar\\784226987238cd665f9214eed4950a6c\\res\\values-pt-rPT\\values-pt-rPT.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "100",
+                        "endOffsets": "151"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\Users\\a-edu\\StudioProjects\\Nightspotrepo\\app\\libs\\android-auth-1.0\\auth-lib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-pt-rPT\\values-pt-rPT.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\a-edu\\.gradle\\caches\\transforms-1\\files-1.1\\support-compat-27.0.2.aar\\439e67e4e591447ae5510c49f74d87f5\\res\\values-pt-rPT\\values-pt-rPT.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "100",
+                        "endOffsets": "151"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "C:\\Users\\a-edu\\Desktop\\android-auth-1.0\\auth-lib\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-pt-rPT\\values-pt-rPT.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\a-edu\\.gradle\\caches\\transforms-1\\files-1.1\\support-compat-27.0.2.aar\\439e67e4e591447ae5510c49f74d87f5\\res\\values-pt-rPT\\values-pt-rPT.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "100",
+                        "endOffsets": "151"
+                    }
+                }
+            ]
+        }
+    ]
+}

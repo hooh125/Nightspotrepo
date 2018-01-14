@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "271752299344",
-    "project_id": "nightspot-1515498553796"
+    "project_number": "81596724228",
+    "project_id": "nightspot-192109"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:271752299344:android:2901a2e03169b8f1",
+        "mobilesdk_app_id": "1:81596724228:android:2901a2e03169b8f1",
         "android_client_info": {
           "package_name": "com.anedma.nightspot"
         }
       },
       "oauth_client": [
         {
-          "client_id": "271752299344-mk7o0m0pok9835cj9se4ge4n2or67t98.apps.googleusercontent.com",
+          "client_id": "81596724228-bn89tk5qbmaq1jb79cjsiat2s5pug5i5.apps.googleusercontent.com",
           "client_type": 3
         },
         {
-          "client_id": "271752299344-1hc1rp2ib59niu9g17dj7g29590ufq24.apps.googleusercontent.com",
+          "client_id": "81596724228-pou0r537u3gsjr3om85cotr1k03mt8si.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.anedma.nightspot",
-            "certificate_hash": "ea35f12c1fcb5ffe50e63796bce483442c497123"
+            "certificate_hash": "a201f6c5730977a0d650c76c724079c3478f73b6"
           }
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDvXry_INfmgTPZh0AwgH9YPzwVdnTUJwY"
+          "current_key": "AIzaSyAtivnHKtN-d5CdlchZS00wCeTX1a6jlpw"
         }
       ],
       "services": {

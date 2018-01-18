@@ -3,13 +3,13 @@ package com.anedma.nightspot.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.anedma.nightspot.R;
+import com.anedma.nightspot.SpotifyApiController;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -17,9 +17,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
-import com.spotify.sdk.android.authentication.AuthenticationHandler;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
+
+import java.util.List;
+
+import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Pager;
+import kaaes.spotify.webapi.android.models.PlaylistBase;
+import kaaes.spotify.webapi.android.models.PlaylistSimple;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 
@@ -27,7 +37,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private static final int REQUESTCODE_SPOTIFY_SIGNIN = 1337;
     private static final String SPOTIFY_CLIENT_ID = "d075f2e5efcc4be6b5cb879a49950de5";
     private static final String REDIRECT_SPOTIFY_URI = "nightspot://callback";
-    private static final String[] SCOPES = {"playlist-read-private", "playlist-read-collaborative", "user-follow-read", "user-library-read", "user-top-read"};
+    private static final String[] SCOPES = {"playlist-read-private", "playlist-read-collaborative", "user-follow-read", "user-library-read", "user-top-read", "user-read-email", "playlist-read-collaborative"};
     private GoogleSignInClient mGoogleSignIn;
     private AuthenticationRequest.Builder builder;
 
@@ -77,12 +87,15 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             switch (response.getType()) {
                 case TOKEN:
                     //TODO: Login satisfactorio para Spotify
-                    Log.d("SPOTIFY", "LOGIN SATISFACTORIO");
-                    String accessToken = AuthenticationClient.getResponse(resultCode, getIntent()).getAccessToken();
+                    Log.d("SPOTIFYAPI", "LOGIN SATISFACTORIO");
+                    String accessToken = response.getAccessToken();
+                    Log.d("SPOTIFYAPI", "ACCESS TOKEN: " + accessToken);
+                    SpotifyApiController.setAccessToken(accessToken);
+                    SpotifyApiController controller = SpotifyApiController.getInstance();
                     break;
                 case ERROR:
                     //TODO: Login erroneo para Spotify
-                    Log.d("SPOTIFY", "LOGIN ERRONEO");
+                    Log.d("SPOTIFYAPI", "LOGIN ERRONEO");
                     Toast.makeText(this, "Error al iniciar sesión con Spotify", Toast.LENGTH_LONG).show();
                     break;
                 default:

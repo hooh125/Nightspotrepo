@@ -1,60 +1,46 @@
 package com.anedma.nightspot;
 
+import android.content.Context;
 import android.util.Log;
-
+import com.anedma.nightspot.database.DbHelper;
+import com.anedma.nightspot.exception.SQLiteInsertException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Pager;
-import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.PlaylistSimple;
 import kaaes.spotify.webapi.android.models.PlaylistTrack;
 import kaaes.spotify.webapi.android.models.PlaylistTracksInformation;
 import kaaes.spotify.webapi.android.models.UserPrivate;
-import kaaes.spotify.webapi.android.models.UserPublic;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-/**
- * Created by a-edu on 16/01/2018.
- */
 
 public class SpotifyApiController {
 
-    private static SpotifyApiController instance = null;
-    private static SpotifyApi api;
     private static SpotifyService service;
-    private static String accessToken;
     private static UserPrivate user = null;
     private static List<PlaylistSimple> myPlaylists = new ArrayList<>();
     private static List<PlaylistTrack> myPlaylistTracks = new ArrayList<>();
     private static int pendingCalls = 0;
+    private Context context;
 
-    private SpotifyApiController() {
-        api = new SpotifyApi();
+    public SpotifyApiController(String accessToken) {
+        SpotifyApi api = new SpotifyApi();
         if (!accessToken.isEmpty()) {
             api.setAccessToken(accessToken);
         }
         service = api.getService();
-        getUserData();
     }
 
-    public static SpotifyApiController getInstance() {
-        if (instance == null) {
-            instance = new SpotifyApiController();
-        }
-        return instance;
-    }
-
-    public static void setAccessToken(String _accessToken) {
-        accessToken = _accessToken;
+    public void setContext(Context context) {
+        this.context = context;
     }
 
     public void getUserData() {
@@ -124,6 +110,7 @@ public class SpotifyApiController {
                 Log.d("SPOTIFYAPI", "Pendientes: " + pendingCalls + " - Añadiendo " + playlistTrackPager.items.size() + " canciones de la lista " + playlist.name + " ID: " + playlist.id);
                 if (pendingCalls == 0) {
                     Log.d("SPOTIFYAPI", "La actualización se ha completado");
+                    insertTracksIntoDB();
                 }
             }
 
@@ -133,5 +120,20 @@ public class SpotifyApiController {
                 Log.d("SPOTIFYAPI", "PlaylistID: " + playlist.id + " UserID: " + user.id);
             }
         });
+    }
+
+    private void insertTracksIntoDB() {
+        if(context != null) {
+            DbHelper db = new DbHelper(context);
+            for(PlaylistTrack plTrack : myPlaylistTracks) {
+                try {
+                    db.insert(plTrack.track);
+                } catch (SQLiteInsertException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            Log.d("DB", "Error al intentar insertar las canciones en la BBDD local, contexto no inicializado");
+        }
     }
 }

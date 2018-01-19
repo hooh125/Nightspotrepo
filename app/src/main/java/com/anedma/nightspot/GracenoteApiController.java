@@ -5,9 +5,9 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.anedma.nightspot.database.FingerprintDbHelper;
+import com.anedma.nightspot.database.DbHelper;
 import com.anedma.nightspot.dto.Fingerprint;
-import com.anedma.nightspot.exception.FingerprintInsertException;
+import com.anedma.nightspot.exception.SQLiteInsertException;
 import com.gracenote.gnsdk.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -187,10 +187,10 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                     String genre = gnAlbum.trackMatched().genre(GnDataLevel.kDataLevelInvalid);
                     String album = gnAlbum.title().display();
                     Fingerprint fp = new Fingerprint(artist, song, genre, album);
-                    FingerprintDbHelper dbHelper = new FingerprintDbHelper(context);
-                    dbHelper.insertFingerprint(fp);
+                    DbHelper dbHelper = new DbHelper(context);
+                    dbHelper.insert(fp);
                     dbHelper.close();
-                } catch (GnException | FingerprintInsertException e) {
+                } catch (GnException | SQLiteInsertException e) {
                     e.printStackTrace();
                 }
             }

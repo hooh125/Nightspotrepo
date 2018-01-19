@@ -20,17 +20,6 @@ import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
-import java.util.List;
-
-import kaaes.spotify.webapi.android.SpotifyApi;
-import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Pager;
-import kaaes.spotify.webapi.android.models.PlaylistBase;
-import kaaes.spotify.webapi.android.models.PlaylistSimple;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
 public class LoginActivity extends Activity implements View.OnClickListener {
 
     private static final int REQUESTCODE_GOOGLE_SIGNIN = 123; //Este es el código de vuelta que usara la API para saber que el usuario ha conseguido loguearse.
@@ -90,8 +79,9 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     Log.d("SPOTIFYAPI", "LOGIN SATISFACTORIO");
                     String accessToken = response.getAccessToken();
                     Log.d("SPOTIFYAPI", "ACCESS TOKEN: " + accessToken);
-                    SpotifyApiController.setAccessToken(accessToken);
-                    SpotifyApiController controller = SpotifyApiController.getInstance();
+                    SpotifyApiController controller = new SpotifyApiController(accessToken);
+                    controller.setContext(this);
+                    controller.getUserData();
                     break;
                 case ERROR:
                     //TODO: Login erroneo para Spotify

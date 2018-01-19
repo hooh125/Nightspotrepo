@@ -20,13 +20,11 @@ import com.anedma.nightspot.R;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.anedma.nightspot.database.FingerprintDbHelper;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int PERMISSION_REQUEST_LOCATION = 1;
-    private FingerprintDbHelper dbHelper;
     private FingerprinterThread fingerprintThread;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -35,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dbHelper = new FingerprintDbHelper(getApplicationContext());
         setContentView(R.layout.activity_main);
         mToolbar =  findViewById(R.id.my_toolbar);
         setSupportActionBar(mToolbar);
@@ -74,7 +71,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
         mDrawerLayout.addDrawerListener(mDrawerToggle);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        if(getSupportActionBar() != null)
+            getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerToggle.syncState();
     }

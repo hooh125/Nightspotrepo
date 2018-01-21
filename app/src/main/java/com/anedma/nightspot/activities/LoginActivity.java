@@ -3,6 +3,7 @@ package com.anedma.nightspot.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.util.Pair;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.SpotifyApiController;
+import com.anedma.nightspot.database.DbHelper;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -19,6 +21,10 @@ import com.google.android.gms.tasks.Task;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 
@@ -103,11 +109,19 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             //TODO: Gestionar la entrada del usuario con Google
+            DbHelper dbHelper = new DbHelper(this);
+            HashMap<String, String> args = new HashMap<>();
+            args.put("operation", "insertUser");
+            args.put("name", account.getGivenName());
+            args.put("lastName", account.getFamilyName());
+            args.put("email", account.getEmail());
+            dbHelper.insertOnline(args);
             //Si esto no retorna un fallo, el usuario se ha logueado correctamente, ya puede acceder
             Log.d("GOOGLE", "LOGIN SATISFACTORIO");
         } catch (ApiException e) {
             //Si hay un error, la API devolverá un resultado según corresponda.
             Log.w("GOOGLESIGNIN", "El Login con Google ha fallado con el código: " + e.getStatusCode());
+            Log.w("GOOGLESIGNIN", "Mensaje: " + e.getMessage());
             Log.d("GOOGLE", "LOGIN ERRONEO");
             Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
         }

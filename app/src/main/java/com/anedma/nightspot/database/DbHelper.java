@@ -4,8 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v4.util.Pair;
 import android.util.Log;
 
+import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.dto.Fingerprint;
 import com.anedma.nightspot.exception.SQLiteInsertException;
 
@@ -16,6 +18,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
 
 import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
@@ -28,7 +32,6 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1; //Cambiar este número si se cambia el esquema de la base de datos
     private static final String DATABASE_NAME = "fingerprint_db";
-    private static final String URL = "https://nightspot.000webhostapp.com/dbmanager.php";
 
 
     public DbHelper(Context context) {
@@ -93,8 +96,13 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
+    public void insertOnline(HashMap<String, String> map) {
+        DbTask dbTask = new DbTask();
+        dbTask.execute(map);
+    }
+
     private void insertPrintOnline(Fingerprint fp) {
-        try {
+       /* try {
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //Establecemos las propiedades de la llamada a la API
@@ -127,6 +135,6 @@ public class DbHelper extends SQLiteOpenHelper {
             }
         } catch (java.io.IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 }

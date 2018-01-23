@@ -2,8 +2,15 @@ package com.anedma.nightspot;
 
 import android.content.Context;
 import android.util.Log;
+
+import com.anedma.nightspot.activities.LoginActivity;
 import com.anedma.nightspot.database.DbHelper;
 import com.anedma.nightspot.exception.SQLiteInsertException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +19,8 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
+import kaaes.spotify.webapi.android.models.Artist;
+import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Pager;
 import kaaes.spotify.webapi.android.models.PlaylistSimple;
 import kaaes.spotify.webapi.android.models.PlaylistTrack;
@@ -124,16 +133,64 @@ public class SpotifyApiController {
 
     private void insertTracksIntoDB() {
         if(context != null) {
-            DbHelper db = new DbHelper(context);
-            for(PlaylistTrack plTrack : myPlaylistTracks) {
-                try {
-                    db.insert(plTrack.track);
-                } catch (SQLiteInsertException e) {
-                    e.printStackTrace();
+            DbHelper dbHelper = new DbHelper(context);
+            LoginActivity loginActivity = (LoginActivity) context;
+            JSONArray jsonTracks = new JSONArray();
+            try {
+                for(PlaylistTrack plTrack : myPlaylistTracks) {
+                    JSONObject track = new JSONObject();
+                    try {
+                        dbHelper.insert(plTrack.track);
+                        track.put("artist", removeSpecialCharacters(getArtists(plTrack.track.artists)));
+                        track.put("song", removeSpecialCharacters(plTrack.track.name));
+                        track.put("album", removeSpecialCharacters(plTrack.track.album.name));
+                        jsonTracks.put(track);
+                        if(jsonTracks.length() == 10) {
+                            insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks);
+                            jsonTracks = new JSONArray();
+                        }
+                    } catch (SQLiteInsertException e) {
+                        e.printStackTrace();
+                    }
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         } else {
             Log.d("DB", "Error al intentar insertar las canciones en la BBDD local, contexto no inicializado");
         }
+    }
+
+    private void insertUserTracksOnline(DbHelper dbHelper, String email, JSONArray tracks) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("operation", "insertUserTracks");
+            json.put("email", email);
+            json.put("tracks", tracks);
+            Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
+            Log.d("SPOTIFYAPI", json.toString());
+            dbHelper.mySqlRequest(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static String getArtists(List<ArtistSimple> ts) {
+        StringBuilder artists = new StringBuilder();
+        for(ArtistSimple artist : ts) {
+            if(!artists.toString().contains(artist.name)) {
+                if(!artists.toString().isEmpty()) {
+                    artists.append(", ").append(artist.name);
+                } else {
+                    artists.append(artist.name);
+                }
+            }
+        }
+        return artists.toString();
+    }
+
+    private String removeSpecialCharacters(String string) {
+        return string.replaceAll("[^a-zA-Z0-9\\s]+","");
     }
 }

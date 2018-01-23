@@ -3,8 +3,12 @@ package com.anedma.nightspot.async;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -17,13 +21,22 @@ import java.util.HashMap;
  * Created by andreseduardomataperez on 20/1/18.
  */
 
-public class DbTask extends AsyncTask<HashMap<String, String>, Void, String> {
+public class DbTask extends AsyncTask<JSONObject, Void, JSONObject> {
 
-    private static final String URL = "http://ec2-52-56-196-109.eu-west-2.compute.amazonaws.com/dbmanager.php";
+    public AsyncResponse delegate = null;
+    private static final String URL = "http://ec2-35-178-12-161.eu-west-2.compute.amazonaws.com/dbmanager.php";
+
+    public DbTask(AsyncResponse delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
-    protected String doInBackground(HashMap<String, String>[] hash) {
-        Log.d("MYSQL", "Intentando insertar usuario en MySQL");
+    protected JSONObject doInBackground(JSONObject[] jsonObjects) {
+        Log.d("MYSQL", "Intentando realizar operacion en MySQL");
+        if(jsonObjects[0] == null)
+            return null;
+        JSONObject json = jsonObjects[0];
+        JSONObject jsonResponse = null;
         try {
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -32,19 +45,18 @@ public class DbTask extends AsyncTask<HashMap<String, String>, Void, String> {
             conn.setConnectTimeout(15000);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("charset", "utf-8");
+            conn.addRequestProperty("Accept", "application/json");
+            conn.addRequestProperty("Content-Type", "application/json");
             conn.setDoInput(true);
             conn.setDoOutput(true);
+
             //Creamos un flujo de salida
-            OutputStream os = conn.getOutputStream();
+            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
             //Escribimos los parámetros POST en la llamada
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-            HashMap<String, String> map = hash[0];
-            for (String key : map.keySet()) {
-                writer.write(URLEncoder.encode(key, "UTF-8") + "=" + URLEncoder.encode(map.get(key), "UTF-8") + "&");
-            }
-            writer.flush();
-            writer.close();
-            os.close();
+            wr.write(json.toString());
+            wr.flush();
+            wr.close();
+            Log.d("MYSQL", "JSON: " + json.toString());
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -54,14 +66,24 @@ public class DbTask extends AsyncTask<HashMap<String, String>, Void, String> {
                 while ((response = br.readLine()) != null) {
                     sb.append(response);
                 }
-                Log.d("MYSQL", "El servidor ha dicho: " + sb.toString());
+                jsonResponse = new JSONObject(sb.toString());
+                //Log.d("MYSQL", "El servidor ha dicho: " + jsonResponse.toString());
             } else {
                 Log.d("MYSQL", "El servidor ha respondido: " + responseCode);
             }
-        } catch (java.io.IOException e) {
+        } catch (java.io.IOException | JSONException e) {
             e.printStackTrace();
         }
-        return null;
+        return jsonResponse;
+    }
+
+    @Override
+    protected void onPostExecute(JSONObject jsonObject) {
+        delegate.processFinish(jsonObject);
+    }
+
+    public interface AsyncResponse {
+        void processFinish(JSONObject jsonObject);
     }
 
 }

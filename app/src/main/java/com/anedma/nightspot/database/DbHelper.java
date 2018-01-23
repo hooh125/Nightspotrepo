@@ -7,9 +7,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v4.util.Pair;
 import android.util.Log;
 
+import com.anedma.nightspot.SpotifyApiController;
+import com.anedma.nightspot.activities.LoginActivity;
 import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.dto.Fingerprint;
 import com.anedma.nightspot.exception.SQLiteInsertException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,12 +35,14 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1; //Cambiar este número si se cambia el esquema de la base de datos
+    private static final int DATABASE_VERSION = 3; //Cambiar este número si se cambia el esquema de la base de datos
     private static final String DATABASE_NAME = "fingerprint_db";
+    private Context context = null;
 
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -60,11 +67,11 @@ public class DbHelper extends SQLiteOpenHelper {
         values.put(DbScheme.COLUMN_NAME_ALBUM, fp.getAlbum());
         long result = db.insert(DbScheme.PRINT_TABLE_NAME, null, values);
         if (result > 0) {
-            Log.d("DB", "Se ha insertado un fingerprint en la BD correctamente -> " + result);
-            Log.d("DB", "Artista -> " + fp.getArtist());
-            Log.d("DB", "Cancion -> " + fp.getSong());
-            Log.d("DB", "Genero -> " + fp.getGenre());
-            Log.d("DB", "Album -> " + fp.getAlbum());
+            Log.d("DBHELPER", "Se ha insertado un fingerprint en la BD correctamente -> " + result);
+            Log.d("DBHELPER", "Artista -> " + fp.getArtist());
+            Log.d("DBHELPER", "Cancion -> " + fp.getSong());
+            Log.d("DBHELPER", "Genero -> " + fp.getGenre());
+            Log.d("DBHELPER", "Album -> " + fp.getAlbum());
         } else {
             throw new SQLiteInsertException();
         }
@@ -75,30 +82,20 @@ public class DbHelper extends SQLiteOpenHelper {
     public void insert(Track ts) throws SQLiteInsertException {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        StringBuilder artists = new StringBuilder();
-        for(ArtistSimple artist : ts.artists) {
-            if(!artists.toString().contains(artist.name)) {
-                if(!artists.toString().isEmpty()) {
-                    artists.append(", ").append(artist.name);
-                } else {
-                    artists.append(artist.name);
-                }
-            }
-        }
-        values.put(DbScheme.COLUMN_NAME_ARTIST, artists.toString());
+        values.put(DbScheme.COLUMN_NAME_ARTIST, SpotifyApiController.getArtists(ts.artists));
         values.put(DbScheme.COLUMN_NAME_SONG, ts.name);
         values.put(DbScheme.COLUMN_NAME_ALBUM, ts.album.name);
         long result = db.insert(DbScheme.LIBRARY_TABLE_NAME, null, values);
         if (result > 0) {
-            Log.d("DB", "Inserción local correcta -> " + result + " - Canción: " + ts.name + " - Artista: " + artists.toString() + " - Album: " + ts.album.name);
+            //Log.d("DBHELPER", "Inserción local correcta -> " + result + " - Canción: " + ts.name + " - Artista: " + SpotifyApiController.getArtists(ts.artists) + " - Album: " + ts.album.name);
         } else {
             throw new SQLiteInsertException();
         }
     }
 
-    public void insertOnline(HashMap<String, String> map) {
-        DbTask dbTask = new DbTask();
-        dbTask.execute(map);
+    public void mySqlRequest(JSONObject jsonObject) {
+        DbTask dbTask = new DbTask((LoginActivity) context);
+        dbTask.execute(jsonObject);
     }
 
     private void insertPrintOnline(Fingerprint fp) {
@@ -137,4 +134,5 @@ public class DbHelper extends SQLiteOpenHelper {
             e.printStackTrace();
         }*/
     }
+
 }

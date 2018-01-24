@@ -37,6 +37,7 @@ public class SpotifyApiController {
     private static UserPrivate user = null;
     private static List<PlaylistSimple> myPlaylists = new ArrayList<>();
     private static List<PlaylistTrack> myPlaylistTracks = new ArrayList<>();
+    private static List<PlaylistTrack> tracksLeft = new ArrayList<>();
     private static int pendingCalls = 0;
     private Context context;
 
@@ -54,7 +55,6 @@ public class SpotifyApiController {
 
     public void getUserData() {
         getUser();
-        getPlaylists();
     }
 
     private void getUser() {
@@ -63,8 +63,8 @@ public class SpotifyApiController {
             public void success(UserPrivate userPrivate, Response response) {
                 user = userPrivate;
                 Log.d("SPOTIFYAPI", "Usuario: " + user.display_name + " - email: " + user.email);
-                if (myPlaylists.size() > 0 && user != null && myPlaylistTracks.size() == 0)
-                    getPlaylistsTracks();
+                if (user != null && myPlaylistTracks.size() == 0)
+                    getPlaylists();
             }
 
             @Override
@@ -115,6 +115,8 @@ public class SpotifyApiController {
             @Override
             public void success(Pager<PlaylistTrack> playlistTrackPager, Response response) {
                 myPlaylistTracks.addAll(playlistTrackPager.items);
+                LoginActivity loginActivity = (LoginActivity) context;
+                loginActivity.progressBar.setMax(myPlaylistTracks.size());
                 pendingCalls--;
                 Log.d("SPOTIFYAPI", "Pendientes: " + pendingCalls + " - Añadiendo " + playlistTrackPager.items.size() + " canciones de la lista " + playlist.name + " ID: " + playlist.id);
                 if (pendingCalls == 0) {
@@ -132,9 +134,11 @@ public class SpotifyApiController {
     }
 
     private void insertTracksIntoDB() {
+        //TODO: Revisar este método
         if(context != null) {
             DbHelper dbHelper = new DbHelper(context);
             LoginActivity loginActivity = (LoginActivity) context;
+            tracksLeft.addAll(myPlaylistTracks);
             JSONArray jsonTracks = new JSONArray();
             try {
                 for(PlaylistTrack plTrack : myPlaylistTracks) {
@@ -145,30 +149,34 @@ public class SpotifyApiController {
                         track.put("song", removeSpecialCharacters(plTrack.track.name));
                         track.put("album", removeSpecialCharacters(plTrack.track.album.name));
                         jsonTracks.put(track);
-                        if(jsonTracks.length() == 10) {
-                            insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks);
+                        tracksLeft.remove(plTrack);
+                        if(jsonTracks.length() == 300) {
+                            insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
                             jsonTracks = new JSONArray();
                         }
                     } catch (SQLiteInsertException e) {
                         e.printStackTrace();
                     }
                 }
+                insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            loginActivity.checkLoginStatus();
         } else {
             Log.d("DB", "Error al intentar insertar las canciones en la BBDD local, contexto no inicializado");
         }
     }
 
-    private void insertUserTracksOnline(DbHelper dbHelper, String email, JSONArray tracks) {
+    private void insertUserTracksOnline(DbHelper dbHelper, String email, JSONArray tracks, int tracksLeft) {
         JSONObject json = new JSONObject();
         try {
             json.put("operation", "insertUserTracks");
             json.put("email", email);
             json.put("tracks", tracks);
-            Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
-            Log.d("SPOTIFYAPI", json.toString());
+            json.put("tracksLeft", tracksLeft);
+            //Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
+            //Log.d("SPOTIFYAPI", json.toString());
             dbHelper.mySqlRequest(json);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -192,5 +200,13 @@ public class SpotifyApiController {
 
     private String removeSpecialCharacters(String string) {
         return string.replaceAll("[^a-zA-Z0-9\\s]+","");
+    }
+
+    public int getTracksNumber() {
+        return myPlaylistTracks.size();
+    }
+
+    public int getTracksLeft() {
+        return tracksLeft.size();
     }
 }

@@ -18,12 +18,13 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 
 /**
- * Created by andreseduardomataperez on 20/1/18.
+ * Class created by Andrés Mata (andreseduardomp@gmail.com) on 20/1/18.
+ *
  */
 
 public class DbTask extends AsyncTask<JSONObject, Void, JSONObject> {
 
-    public AsyncResponse delegate = null;
+    private AsyncResponse delegate = null;
     private static final String URL = "http://ec2-35-178-12-161.eu-west-2.compute.amazonaws.com/dbmanager.php";
 
     public DbTask(AsyncResponse delegate) {
@@ -41,8 +42,8 @@ public class DbTask extends AsyncTask<JSONObject, Void, JSONObject> {
             URL url = new URL(URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             //Establecemos las propiedades de la llamada a la API
-            conn.setReadTimeout(15000);
-            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(30000);
+            conn.setConnectTimeout(30000);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("charset", "utf-8");
             conn.addRequestProperty("Accept", "application/json");
@@ -56,7 +57,7 @@ public class DbTask extends AsyncTask<JSONObject, Void, JSONObject> {
             wr.write(json.toString());
             wr.flush();
             wr.close();
-            Log.d("MYSQL", "JSON: " + json.toString());
+            //Log.d("MYSQL", "JSON: " + json.toString());
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -82,8 +83,8 @@ public class DbTask extends AsyncTask<JSONObject, Void, JSONObject> {
         delegate.processFinish(jsonObject);
     }
 
-    public interface AsyncResponse {
-        void processFinish(JSONObject jsonObject);
+    @Override
+    protected void onProgressUpdate(Void... values) {
+        super.onProgressUpdate(values);
     }
-
 }

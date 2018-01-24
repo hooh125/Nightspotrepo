@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.SpotifyApiController;
+import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.database.DbHelper;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -31,17 +32,20 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener, DbTask.AsyncResponse {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener, AsyncResponse {
 
     private static final int REQUESTCODE_GOOGLE_SIGNIN = 123; //Este es el código de vuelta que usara la API para saber que el usuario ha conseguido loguearse.
     private static final int REQUESTCODE_SPOTIFY_SIGNIN = 1337;
     private static final String SPOTIFY_CLIENT_ID = "d075f2e5efcc4be6b5cb879a49950de5";
     private static final String REDIRECT_SPOTIFY_URI = "nightspot://callback";
     private static final String[] SCOPES = {"playlist-read-private", "playlist-read-collaborative", "user-follow-read", "user-library-read", "user-top-read", "user-read-email", "playlist-read-collaborative"};
+    private ImageButton loginGoogleButton;
+    private ImageButton loginSpotifyButton;
     private static boolean loginGoogle = false;
     private static boolean loginSpotify = false;
     public static boolean requestSpotifyData = false;
     public GoogleSignInAccount account;
+    public ProgressBar progressBar;
     private GoogleSignInClient mGoogleSignIn;
     private AuthenticationRequest.Builder builder;
     private SpotifyApiController controller;
@@ -61,19 +65,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         builder.setScopes(SCOPES);
     }
 
-    private void setupUI() {
-        ImageButton loginGoogleButton = findViewById(R.id.googleSignInButton);
-        ImageButton loginSpotifyButton = findViewById(R.id.spotifySignInButton);
-        loginGoogleButton.setOnClickListener(this);
-        loginSpotifyButton.setOnClickListener(this);
-    }
-
     @Override
     protected void onStart() {
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        account = GoogleSignIn.getLastSignedInAccount(this);
         if(account != null) {
-            //TODO: Gestionar la entrada del usuario con Google
-            //El usuario ya se ha logueado previamente, puede acceder.
+            loginGoogleButton.setEnabled(false);
+            sendGoogleSignInRequest();
+            loginGoogle = true;
             Log.d("GOOGLE", "LOGIN SATISFACTORIO");
         }
         super.onStart();
@@ -102,35 +100,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             account = completedTask.getResult(ApiException.class);
-            //TODO: Gestionar la entrada del usuario con Google
-            DbHelper dbHelper = new DbHelper(this);
-            JSONObject json = new JSONObject();
-            HashMap<String, String> args = new HashMap<>();
-            json.put("operation", "insertUser");
-            json.put("name", account.getGivenName());
-            json.put("lastName", account.getFamilyName());
-            json.put("email", account.getEmail());
-            dbHelper.mySqlRequest(json);
-            /*ProgressBar progressBar = new ProgressBar(this,null,android.R.attr.progressBarStyleLarge);
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(100,100);
-            params.addRule(RelativeLayout.CENTER_IN_PARENT);
-            LinearLayout layout = findViewById(R.id.login_activity);
-            layout.addView(progressBar,params);
-            progressBar.setVisibility(View.VISIBLE);  //To show ProgressBar
-            //progressBar.setVisibility(View.GONE);     // To Hide ProgressBar
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            //Si esto no retorna un fallo, el usuario se ha logueado correctamente, ya puede acceder*/
-            Log.d("GOOGLE", "LOGIN SATISFACTORIO");
-            loginGoogle = true;
+            sendGoogleSignInRequest();
         } catch (ApiException e) {
             //Si hay un error, la API devolverá un resultado según corresponda.
             Log.w("GOOGLESIGNIN", "El Login con Google ha fallado con el código: " + e.getStatusCode());
             Log.w("GOOGLESIGNIN", "Mensaje: " + e.getMessage());
             Log.d("GOOGLE", "LOGIN ERRONEO");
             Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
     }
 
@@ -143,6 +119,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.d("SPOTIFYAPI", "ACCESS TOKEN: " + accessToken);
                 controller = new SpotifyApiController(accessToken);
                 controller.setContext(this);
+                loginSpotifyButton.setEnabled(false);
                 loginSpotify = true;
                 checkLoginStatus();
                 break;
@@ -152,6 +129,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Toast.makeText(this, "Error al iniciar sesión con Spotify", Toast.LENGTH_LONG).show();
                 break;
             default:
+        }
+    }
+
+    private void setupUI() {
+        loginGoogleButton = findViewById(R.id.googleSignInButton);
+        loginSpotifyButton = findViewById(R.id.spotifySignInButton);
+        loginGoogleButton.setOnClickListener(this);
+        loginSpotifyButton.setOnClickListener(this);
+    }
+
+    private void sendGoogleSignInRequest() {
+        DbHelper dbHelper = new DbHelper(this);
+        JSONObject json = new JSONObject();
+        try {
+            json.put("operation", "insertUser");
+            json.put("name", account.getGivenName());
+            json.put("lastName", account.getFamilyName());
+            json.put("email", account.getEmail());
+            dbHelper.mySqlRequest(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -179,14 +177,27 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         AuthenticationClient.openLoginActivity(this, REQUESTCODE_SPOTIFY_SIGNIN, request);
     }
 
-    private void checkLoginStatus() {
+    public void checkLoginStatus() {
+        loginGoogleButton.setEnabled(!loginGoogle);
+        loginSpotifyButton.setEnabled(!loginSpotify);
         if(loginGoogle && loginSpotify) {
             if(requestSpotifyData) {
                 Log.d("LOGINACTIVITY", "Intentando recoger librería del usuario");
                 controller.getUserData();
+                if(progressBar == null) {
+                    LinearLayout layoutLoadingLibrary = findViewById(R.id.layoutLoadingLibrary);
+                    layoutLoadingLibrary.setVisibility(View.VISIBLE);
+                    progressBar = findViewById(R.id.pbLoadTracks);
+                    //Bloquamos la interacción del usuario con la interfaz
+                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                }
             } else {
                 Log.d("LOGINACTIVITY", "No se necesita recoger libreria del usuario");
-
+                Toast.makeText(this, "El usuario se ha logueado", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();
             }
             Log.d("LOGINACTIVITY", "El usuario se ha logueado correctamente");
         }
@@ -197,17 +208,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(jsonObject == null) {
             Log.d("LOGINACTIVITY", "El servidor no ha devuelto respuesta alguna");
         } else {
+            Log.d("JSON", jsonObject.toString());
             try {
                 String operation = jsonObject.getString("operation");
                 switch (operation) {
                     case "insertUser":
-                        if(!jsonObject.getBoolean("alreadyRegistered")) {
-                            requestSpotifyData = true;
+                        loginGoogleButton.setEnabled(jsonObject.getBoolean("error"));
+                        if(!jsonObject.getBoolean("error")) {
+                            requestSpotifyData = !jsonObject.getBoolean("alreadyRegistered");
+                            loginGoogle = true;
+                            checkLoginStatus();
+                            Log.d("GOOGLE", "LOGIN SATISFACTORIO");
+                        } else {
+                            Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_LONG).show();
                         }
-                        checkLoginStatus();
                         break;
                     case "insertUserTracks":
-                        Log.d("LOGINACTIVITY", "El servidor ha insertado:" + jsonObject.getInt("tracksRecorded") + " canciones");
+                        int tracksLeft = jsonObject.getInt("tracksLeft");
+                        int tracksRecorded = jsonObject.getInt("tracksRecorded");
+                        Log.d("LOGINACTIVITY", "El servidor ha insertado:" + tracksRecorded + " canciones y faltan " + tracksLeft + " por insertar");
+                        if(tracksLeft == 0) {
+                            LoginActivity.requestSpotifyData = false;
+                            progressBar.setProgress(controller.getTracksNumber());
+                            checkLoginStatus();
+                        } else {
+                            //progressBar.setProgress(100 - ((tracksLeft * 100) / controller.getTracksNumber()));
+                            progressBar.setProgress(controller.getTracksNumber() - tracksLeft);
+                        }
                         break;
                     default:
                 }

@@ -23,5 +23,8 @@
     </string>
     <string name="username">User</string>
     <string name="password">Password</string>
-    <string name="loading_content">Getting tracks...</string>
+    <string name="loading_content">Getting tracks</string>
+    <string name="tvLoadingContent">Loading your music library</string>
+    <string name="cd_google_signin_button">Login with Google Account</string>
+    <string name="cd_spotify_signin_button">Login with Spotify Account</string>
 </resources>

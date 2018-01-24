@@ -22,8 +22,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.MainActivity"
-            android:label="@string/title_activity_main"
+            android:name=".activities.LoginActivity"
+            android:label="@string/title_activity_login"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,10 +36,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBPfy8DGr8bsQNsgSBK9tDWAOK5L7btxpw" />
 
-        <activity android:name=".activities.LoginActivity"></activity>
-        <activity
-            android:name="com.spotify.sdk.android.authentication.LoginActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".activities.MainActivity" />
+        <activity android:name=".activities.PubRegActivity" />
     </application>
 
 </manifest>

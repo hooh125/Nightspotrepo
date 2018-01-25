@@ -21,4 +21,8 @@
     <string name="tv_loading_content">Loading your music library</string>
     <string name="cd_google_signin_button">Login with Google Account</string>
     <string name="cd_spotify_signin_button">Login with Spotify Account</string>
+    <string name="hint_name">Name</string>
+    <string name="hint_description">Description</string>
+    <string name="hint_phone">Phone</string>
+    <string name="pub_register_button">Register</string>
 </resources>

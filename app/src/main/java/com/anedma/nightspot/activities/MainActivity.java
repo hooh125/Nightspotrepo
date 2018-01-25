@@ -45,6 +45,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupNavigationDrawer();
         setupFAB();
 
+        Intent intent = new Intent(this, PubRegActivity.class);
+        startActivity(intent);
+        finish();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);

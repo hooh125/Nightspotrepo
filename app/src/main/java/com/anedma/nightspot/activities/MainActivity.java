@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupNavigationDrawer();
         setupFAB();
 
-        Intent intent = new Intent(this, PubRegActivity.class);
+        Intent intent = new Intent(this, PrintTracksActivity.class);
         startActivity(intent);
         finish();
 
@@ -53,29 +53,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        /*
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
 
-        /*Switch switch_fingerprint = (Switch) findViewById(R.id.switch_fingerprint);
-        switch_fingerprint.setEnabled(true);
-        fingerprintThread = new FingerprinterThread(this);
-        switch_fingerprint.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
-                    if(!fingerprintThread.isAlive()) {
-                        fingerprintThread = new FingerprinterThread(activity);
-                    }
-                    fingerprintThread.start();
-                    buttonView.setText(R.string.status_started);
-                } else if(fingerprintThread.isAlive()) {
-                    fingerprintThread.interrupt();
-                    buttonView.setText(R.string.status_stopped);
-                }
-            }
-        });
-        */
     }
 
     private void setupFAB() {

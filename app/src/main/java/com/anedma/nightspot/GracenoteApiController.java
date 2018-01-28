@@ -5,12 +5,48 @@ import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.anedma.nightspot.database.DbHelper;
-import com.anedma.nightspot.dto.Fingerprint;
-import com.anedma.nightspot.exception.SQLiteInsertException;
-import com.gracenote.gnsdk.*;
+import com.anedma.nightspot.async.GracenoteResponse;
+import com.anedma.nightspot.dto.Track;
+import com.gracenote.gnsdk.GnAlbum;
+import com.gracenote.gnsdk.GnAlbumIterator;
+import com.gracenote.gnsdk.GnDataLevel;
+import com.gracenote.gnsdk.GnDescriptor;
+import com.gracenote.gnsdk.GnError;
+import com.gracenote.gnsdk.GnException;
+import com.gracenote.gnsdk.GnLanguage;
+import com.gracenote.gnsdk.GnLicenseInputMode;
+import com.gracenote.gnsdk.GnList;
+import com.gracenote.gnsdk.GnLocale;
+import com.gracenote.gnsdk.GnLocaleGroup;
+import com.gracenote.gnsdk.GnLog;
+import com.gracenote.gnsdk.GnLookupData;
+import com.gracenote.gnsdk.GnLookupLocalStream;
+import com.gracenote.gnsdk.GnLookupLocalStreamIngest;
+import com.gracenote.gnsdk.GnLookupLocalStreamIngestStatus;
+import com.gracenote.gnsdk.GnManager;
+import com.gracenote.gnsdk.GnMic;
+import com.gracenote.gnsdk.GnMusicId;
+import com.gracenote.gnsdk.GnMusicIdFile;
+import com.gracenote.gnsdk.GnMusicIdStream;
+import com.gracenote.gnsdk.GnMusicIdStreamIdentifyingStatus;
+import com.gracenote.gnsdk.GnMusicIdStreamPreset;
+import com.gracenote.gnsdk.GnMusicIdStreamProcessingStatus;
+import com.gracenote.gnsdk.GnRegion;
+import com.gracenote.gnsdk.GnResponseAlbums;
+import com.gracenote.gnsdk.GnStatus;
+import com.gracenote.gnsdk.GnStorageSqlite;
+import com.gracenote.gnsdk.GnUser;
+import com.gracenote.gnsdk.GnUserStore;
+import com.gracenote.gnsdk.IGnAudioSource;
+import com.gracenote.gnsdk.IGnCancellable;
+import com.gracenote.gnsdk.IGnLookupLocalStreamIngestEvents;
+import com.gracenote.gnsdk.IGnMusicIdStreamEvents;
+import com.gracenote.gnsdk.IGnSystemEvents;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +57,10 @@ import java.util.List;
 
 public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStreamEvents {
 
+
     private static GracenoteApiController instance;
+    private static GracenoteResponse delegate;
     private Context context;
-    private Activity activity;
     private static final String 				gnsdkClientId 			= "933788263";
     private static final String 				gnsdkClientTag 			= "A8B4ECE6DAE23A832C82CB041EAE6EBF";
     private static final String 				gnsdkLicenseFilename 	= "license.txt";
@@ -43,9 +80,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     private List<GnMusicIdStream>		streamIdObjects			= new ArrayList<>();
     private long lastLookup_startTime;
 
-    private GracenoteApiController(Context context, Activity activity) throws GnException {
+    private GracenoteApiController(Context context, GracenoteResponse delegate) throws GnException {
         this.context = context;
-        this.activity = activity;
+        this.delegate = delegate;
         gnManager = new GnManager(this.context, getAssetAsString(gnsdkLicenseFilename), GnLicenseInputMode.kLicenseInputModeString);
         gnManager.systemEventHandler(this);
         gnUser = new GnUser( new GnUserStore(context), gnsdkClientId, gnsdkClientTag, appString );
@@ -68,9 +105,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         streamIdObjects.add( gnMusicIdStream );
     }
 
-    static GracenoteApiController getInstance(Context context, Activity activity) throws GnException {
+    static GracenoteApiController getInstance(Context context, GracenoteResponse delegate) throws GnException {
         if(instance == null) {
-            instance = new GracenoteApiController(context, activity);
+            instance = new GracenoteApiController(context, delegate);
         }
         return instance;
     }
@@ -181,16 +218,16 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             while(iterator.hasNext()) {
                 try {
                     GnAlbum gnAlbum = iterator.next();
-                    Log.d("MATCH", "Se ha encontrado la cancion del artista: " + gnAlbum.artist().name().display());
-                    String artist = gnAlbum.artist().name().display();
+                    URL albumImgURL = new URL(gnAlbum.coverArt().assets().getIterator().next().urlHttp());
+                    String trackArtist = gnAlbum.trackMatched().artist().name().display();
+                    String albumArtist = gnAlbum.artist().name().display();
+                    String artist = (!trackArtist.isEmpty()) ? trackArtist : albumArtist;
                     String song = gnAlbum.trackMatched().title().display();
-                    String genre = gnAlbum.trackMatched().genre(GnDataLevel.kDataLevelInvalid);
                     String album = gnAlbum.title().display();
-                    Fingerprint fp = new Fingerprint(artist, song, genre, album);
-                    DbHelper dbHelper = new DbHelper(context);
-                    dbHelper.insert(fp);
-                    dbHelper.close();
-                } catch (GnException | SQLiteInsertException e) {
+                    Track track = new Track(artist, song, album, albumImgURL);
+                    delegate.trackReturned(track);
+                    //MANEJAR AQUÍ LO QUE SE HARÁ CON EL TRACK
+                } catch (GnException | MalformedURLException e) {
                     e.printStackTrace();
                 }
             }

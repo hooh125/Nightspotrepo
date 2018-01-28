@@ -4,7 +4,9 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
@@ -22,24 +24,24 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+import static com.anedma.nightspot.activities.PubRegActivity.*;
+
 /**
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 25/01/2018.
  */
 
-public class AutocompleteAdapter extends ArrayAdapter implements AdapterView.OnItemClickListener ,Filterable {
+public class AutocompleteAdapter extends ArrayAdapter implements Filterable {
 
-    private static final String LOG_TAG = "AUTOCOMPLETE ADAPTER";
-    private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
-    private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
-    private static final String OUT_JSON = "/json";
-    private static final String API_KEY = "AIzaSyAW2_BIVFwv3-EaP4cQr1d9lKYTiOArJ3s";
     private ArrayList<String> resultList = null;
+    private ArrayList<String> placeIdList = null;
     private Context context = null;
 
     public AutocompleteAdapter(@NonNull Context context, int resource) {
         super(context, resource);
         this.context = context;
     }
+
+
 
     @Override
     public int getCount() {
@@ -55,9 +57,11 @@ public class AutocompleteAdapter extends ArrayAdapter implements AdapterView.OnI
         return resultList.get(position);
     }
 
+    public String getPlaceID(int position) {
+        return placeIdList.get(position);
+    }
+
     private ArrayList<String> autocomplete(String input) {
-        ArrayList<String> resultList = null;
-        ArrayList<String> descriptionList = null;
         HttpURLConnection conn = null;
         StringBuilder jsonResults = new StringBuilder();
         try {
@@ -65,6 +69,7 @@ public class AutocompleteAdapter extends ArrayAdapter implements AdapterView.OnI
             sb.append("?key=" + API_KEY);
             sb.append("&components=country:es");
             sb.append("&input=").append(URLEncoder.encode(input, "utf8"));
+            sb.append("&types=address");
 
             URL url = new URL(sb.toString());
             conn = (HttpURLConnection) url.openConnection();
@@ -90,23 +95,23 @@ public class AutocompleteAdapter extends ArrayAdapter implements AdapterView.OnI
 
         try {
             // Create a JSON object hierarchy from the results
-            Log.d("yo",jsonResults.toString());
+            //Log.d("yo",jsonResults.toString());
             JSONObject jsonObj = new JSONObject(jsonResults.toString());
             JSONArray predsJsonArray = jsonObj.getJSONArray("predictions");
 
             // Extract the Place descriptions from the results
             resultList = new ArrayList(predsJsonArray.length());
-            descriptionList = new ArrayList(predsJsonArray.length());
+            placeIdList = new ArrayList(predsJsonArray.length());
             for (int i = 0; i < predsJsonArray.length(); i++) {
-                resultList.add(predsJsonArray.getJSONObject(i).toString());
-                descriptionList.add(predsJsonArray.getJSONObject(i).getString("description"));
+                resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
+                placeIdList.add(predsJsonArray.getJSONObject(i).getString("place_id"));
             }
             //saveArray(resultList.toArray(new String[resultList.size()]), "predictionsArray", getContext());
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Cannot process JSON results", e);
         }
 
-        return descriptionList;
+        return resultList;
     }
 
     @NonNull
@@ -138,10 +143,5 @@ public class AutocompleteAdapter extends ArrayAdapter implements AdapterView.OnI
             }
         };
         return filter;
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
     }
 }

@@ -17,6 +17,7 @@ import com.anedma.nightspot.SpotifyApiController;
 import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.database.DbHelper;
+import com.anedma.nightspot.dto.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -147,6 +148,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             json.put("name", account.getGivenName());
             json.put("lastName", account.getFamilyName());
             json.put("email", account.getEmail());
+            Log.d("JSON", json.toString());
             dbHelper.mySqlRequest(json);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -195,6 +197,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             } else {
                 Log.d("LOGINACTIVITY", "No se necesita recoger libreria del usuario");
                 Toast.makeText(this, "El usuario se ha logueado", Toast.LENGTH_LONG).show();
+                User user = User.getInstance();
+                user.setEmail(account.getEmail());
+                user.setName(account.getGivenName());
+                user.setLastName(account.getFamilyName());
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 finish();

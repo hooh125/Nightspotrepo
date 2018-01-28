@@ -1,8 +1,11 @@
 package com.anedma.nightspot;
 
-import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
+import com.anedma.nightspot.activities.PrintTracksActivity;
+import com.anedma.nightspot.async.GracenoteResponse;
+import com.anedma.nightspot.dto.Track;
 import com.gracenote.gnsdk.GnException;
 
 /**
@@ -12,13 +15,15 @@ import com.gracenote.gnsdk.GnException;
 public class FingerprinterThread extends Thread {
 
     private boolean status = true;
-    private Activity activity;
+    private Context context;
+    private GracenoteResponse delegate;
     private GracenoteApiController controller;
 
-    public FingerprinterThread(Activity activity) {
-        this.activity = activity;
+    public FingerprinterThread(Context context, GracenoteResponse delegate) {
+        this.context = context;
+        this.delegate = delegate;
         try {
-            controller = GracenoteApiController.getInstance(activity.getApplicationContext(), activity);
+            controller = GracenoteApiController.getInstance(context, delegate);
         } catch (GnException e) {
             e.printStackTrace();
         }
@@ -41,4 +46,5 @@ public class FingerprinterThread extends Thread {
             }
         }
     }
+
 }

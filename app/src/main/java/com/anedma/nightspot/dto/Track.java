@@ -1,28 +1,29 @@
 package com.anedma.nightspot.dto;
 
+import java.net.URL;
+
 /**
  * Created by a-edu on 24/10/2017.
  */
 
-public class Fingerprint {
+public class Track {
 
     private String artist;
     private String song;
-    private String genre;
     private String album;
+    private URL albumImageUrl;
 
-    public Fingerprint(String artist, String song, String genre, String album) {
+    public Track(String artist, String song, String album, URL albumImageUrl) {
         this.artist = artist;
         this.song = song;
-        this.genre = genre;
         this.album = album;
+        this.albumImageUrl = albumImageUrl;
     }
 
-    public Fingerprint(String artist, String song, String genre) {
+    public Track(String artist, String song, String album) {
         this.artist = artist;
         this.song = song;
-        this.genre = genre;
-        this.album = null;
+        this.album = album;
     }
 
     public String getArtist() {
@@ -33,11 +34,11 @@ public class Fingerprint {
         return song;
     }
 
-    public String getGenre() {
-        return genre;
-    }
-
     public String getAlbum() {
         return album;
+    }
+
+    public URL getAlbumImageUrl() {
+        return albumImageUrl;
     }
 }

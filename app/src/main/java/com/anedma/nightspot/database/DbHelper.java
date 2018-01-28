@@ -4,29 +4,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.v4.util.Pair;
-import android.util.Log;
 
 import com.anedma.nightspot.SpotifyApiController;
 import com.anedma.nightspot.activities.LoginActivity;
 import com.anedma.nightspot.async.DbTask;
-import com.anedma.nightspot.dto.Fingerprint;
 import com.anedma.nightspot.exception.SQLiteInsertException;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Track;
 
 /**
@@ -59,26 +44,26 @@ public class DbHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void insert(Fingerprint fp) throws SQLiteInsertException {
+    /*public void insert(Track track) throws SQLiteInsertException {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(DbScheme.COLUMN_NAME_ARTIST, fp.getArtist());
-        values.put(DbScheme.COLUMN_NAME_SONG, fp.getSong());
-        values.put(DbScheme.COLUMN_NAME_GENDER, fp.getGenre());
-        values.put(DbScheme.COLUMN_NAME_ALBUM, fp.getAlbum());
+        values.put(DbScheme.COLUMN_NAME_ARTIST, track.getArtist());
+        values.put(DbScheme.COLUMN_NAME_SONG, track.getSong());
+        values.put(DbScheme.COLUMN_NAME_GENDER, track.getGenre());
+        values.put(DbScheme.COLUMN_NAME_ALBUM, track.getAlbum());
         long result = db.insert(DbScheme.PRINT_TABLE_NAME, null, values);
         if (result > 0) {
             Log.d("DBHELPER", "Se ha insertado un fingerprint en la BD correctamente -> " + result);
-            Log.d("DBHELPER", "Artista -> " + fp.getArtist());
-            Log.d("DBHELPER", "Cancion -> " + fp.getSong());
-            Log.d("DBHELPER", "Genero -> " + fp.getGenre());
-            Log.d("DBHELPER", "Album -> " + fp.getAlbum());
+            Log.d("DBHELPER", "Artista -> " + track.getArtist());
+            Log.d("DBHELPER", "Cancion -> " + track.getSong());
+            Log.d("DBHELPER", "Genero -> " + track.getGenre());
+            Log.d("DBHELPER", "Album -> " + track.getAlbum());
         } else {
             throw new SQLiteInsertException();
         }
         //Ahora intentamos insertar el fingerprint en la base de datos MySQL
         //insertPrintOnline(fp);
-    }
+    }*/
 
     public void insert(Track ts) throws SQLiteInsertException {
         SQLiteDatabase db = getWritableDatabase();

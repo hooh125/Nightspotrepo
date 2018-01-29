@@ -4,18 +4,14 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -29,11 +25,7 @@ import com.anedma.nightspot.R;
 import com.anedma.nightspot.async.GracenoteResponse;
 import com.anedma.nightspot.dto.Track;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -121,7 +113,7 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
             TextView tvArtist;
             ImageView ivAlbumImg;
 
-            public ViewHolder(View v) {
+            private ViewHolder(View v) {
                 this.tvSong = v.findViewById(R.id.tv_song);
                 this.tvArtist = v.findViewById(R.id.tv_artist);
                 this.ivAlbumImg = v.findViewById(R.id.iv_album);

@@ -2,6 +2,7 @@ package com.anedma.nightspot.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -17,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.anedma.nightspot.FingerprinterThread;
@@ -28,8 +30,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private static final String LOG_TAG = "MAINACTIVITY";
     private static final int PERMISSION_REQUEST_LOCATION = 1;
-    private FingerprinterThread fingerprintThread;
+    private Context context;
+    private Button buttonAddPub;
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
@@ -39,15 +43,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.context = this;
         mToolbar = findViewById(R.id.toolbar);
 
         setSupportActionBar(mToolbar);
         setupNavigationDrawer();
         setupFAB();
-
-        Intent intent = new Intent(this, PrintTracksActivity.class);
-        startActivity(intent);
-        finish();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -70,11 +71,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerToggle = new DrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
         mDrawerLayout.addDrawerListener(mDrawerToggle);
-        if(getSupportActionBar() != null) {
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setHomeButtonEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mDrawerToggle.syncState();
+        buttonAddPub = findViewById(R.id.include_left_drawer).findViewById(R.id.button_add_pub);
+        buttonAddPub.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startPubRegActivity();
+            }
+        });
+    }
+
+    private void startPubRegActivity() {
+        Log.d(LOG_TAG, "Iniciando actividad para registro de Pub");
+        Intent intent = new Intent(context, PubRegActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -86,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.settings_option) {
+        if (item.getItemId() == R.id.settings_option) {
             Toast.makeText(this, "Prueba de boton", Toast.LENGTH_SHORT).show();
         } else if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
@@ -124,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private class DrawerToggle extends ActionBarDrawerToggle {
 
-        public DrawerToggle(Activity activity, DrawerLayout drawerLayout, int openDrawerContentDescRes, int closeDrawerContentDescRes) {
+        private DrawerToggle(Activity activity, DrawerLayout drawerLayout, int openDrawerContentDescRes, int closeDrawerContentDescRes) {
             super(activity, drawerLayout, openDrawerContentDescRes, closeDrawerContentDescRes);
         }
 
@@ -142,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         @Override
         public void onDrawerSlide(View drawerView, float slideOffset) {
-            if(fab != null)
+            if (fab != null)
                 fab.setTranslationX(slideOffset * 250);
             super.onDrawerSlide(drawerView, slideOffset);
         }

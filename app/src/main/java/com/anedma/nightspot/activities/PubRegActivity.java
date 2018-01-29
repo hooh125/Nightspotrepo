@@ -1,13 +1,11 @@
 package com.anedma.nightspot.activities;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.telecom.PhoneAccount;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -170,7 +168,8 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         if (view == null) {
             view = new View(activity);
         }
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        if(imm != null)
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     @Override
@@ -180,11 +179,18 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
                 if(!jsonObject.getBoolean("error")) {
                     Log.d(LOG_TAG, "Pub registrado correctamente");
                     Log.d(LOG_TAG, jsonObject.toString());
+                    startPrintTracksActivity();
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void startPrintTracksActivity() {
+        Intent intent = new Intent(this, PrintTracksActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     class PlacesAPIRequest extends AsyncTask<String, Void, JSONObject> {
@@ -206,11 +212,12 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             JSONObject results = null;
             StringBuilder jsonResults = new StringBuilder();
             try {
-                StringBuilder sb = new StringBuilder(PLACES_API_BASE + TYPE_PLACE_DETAILS + OUT_JSON);
-                sb.append("?placeid=" + placeId);
-                sb.append("&key=" + API_KEY);
-
-                URL url = new URL(sb.toString());
+                String sb = PLACES_API_BASE +
+                        TYPE_PLACE_DETAILS +
+                        OUT_JSON +
+                        "?placeid=" + placeId +
+                        "&key=" + API_KEY;
+                URL url = new URL(sb);
                 conn = (HttpURLConnection) url.openConnection();
                 InputStreamReader in = new InputStreamReader(conn.getInputStream());
 

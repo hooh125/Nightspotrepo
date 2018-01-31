@@ -13,14 +13,21 @@ public class Pub {
 
     private String name;
     private String description;
-    private String address;
     private LatLng latLng;
     private String phone;
+    private int affinity;
 
-    public Pub(String name, String description, String address, LatLng latLng, String phone) {
+    public Pub(String name, String description, LatLng latLng, String phone, int affinity) {
         this.name = name;
         this.description = description;
-        this.address = address;
+        this.latLng = latLng;
+        this.phone = phone;
+        this.affinity = affinity;
+    }
+
+    public Pub(String name, String description, LatLng latLng, String phone) {
+        this.name = name;
+        this.description = description;
         this.latLng = latLng;
         this.phone = phone;
     }
@@ -33,15 +40,15 @@ public class Pub {
         return description;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
     public LatLng getLatLng() {
         return latLng;
     }
 
     public String getPhone() {
         return phone;
+    }
+
+    public int getAffinity() {
+        return affinity;
     }
 }

@@ -79,9 +79,4 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void mySqlRequest(JSONObject jsonObject) {
-        DbTask dbTask = new DbTask((LoginActivity) context);
-        dbTask.execute(jsonObject);
-    }
-
 }

@@ -127,7 +127,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             Toast.makeText(this, "Te falta rellenar algún campo", Toast.LENGTH_SHORT).show();
             return null;
         }
-        return new Pub(name, description, address, latLng, phone);
+        return new Pub(name, description, latLng, phone);
     }
 
     @Override

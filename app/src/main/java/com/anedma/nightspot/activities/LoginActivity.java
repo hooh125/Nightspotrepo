@@ -35,6 +35,7 @@ import java.util.HashMap;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener, AsyncResponse {
 
+    private static final String LOG_TAG = "LOGINACTIVITY";
     private static final int REQUESTCODE_GOOGLE_SIGNIN = 123; //Este es el código de vuelta que usara la API para saber que el usuario ha conseguido loguearse.
     private static final int REQUESTCODE_SPOTIFY_SIGNIN = 1337;
     private static final String SPOTIFY_CLIENT_ID = "d075f2e5efcc4be6b5cb879a49950de5";
@@ -72,8 +73,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(account != null) {
             loginGoogleButton.setEnabled(false);
             sendGoogleSignInRequest();
-            loginGoogle = true;
-            Log.d("GOOGLE", "LOGIN SATISFACTORIO");
         }
         super.onStart();
     }
@@ -81,7 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("LOGIN", "Se ha devuelto el resultado de una petición: " + requestCode);
+        Log.d(LOG_TAG, "Se ha devuelto el resultado de una petición: " + requestCode);
         //Si el resultado de la petición es correcto
         if(requestCode == REQUESTCODE_GOOGLE_SIGNIN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -104,9 +103,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             sendGoogleSignInRequest();
         } catch (ApiException e) {
             //Si hay un error, la API devolverá un resultado según corresponda.
-            Log.w("GOOGLESIGNIN", "El Login con Google ha fallado con el código: " + e.getStatusCode());
-            Log.w("GOOGLESIGNIN", "Mensaje: " + e.getMessage());
-            Log.d("GOOGLE", "LOGIN ERRONEO");
+            Log.w(LOG_TAG, "El Login con Google ha fallado con el código: " + e.getStatusCode());
+            Log.w(LOG_TAG, "Mensaje: " + e.getMessage());
+            Log.d(LOG_TAG, "LOGIN ERRONEO");
             Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
         }
     }
@@ -115,18 +114,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         switch (response.getType()) {
             case TOKEN:
                 //TODO: Login satisfactorio para Spotify
-                Log.d("SPOTIFYAPI", "LOGIN SATISFACTORIO");
+                Log.d(LOG_TAG, "LOGIN DE SPOTIFY SATISFACTORIO");
                 String accessToken = response.getAccessToken();
-                Log.d("SPOTIFYAPI", "ACCESS TOKEN: " + accessToken);
-                controller = new SpotifyApiController(accessToken);
-                controller.setContext(this);
+                Log.d(LOG_TAG, "ACCESS TOKEN SPOTIFY: " + accessToken);
+                controller = new SpotifyApiController(accessToken, this);
                 loginSpotifyButton.setEnabled(false);
                 loginSpotify = true;
                 checkLoginStatus();
                 break;
             case ERROR:
                 //TODO: Login erroneo para Spotify
-                Log.d("SPOTIFYAPI", "LOGIN ERRONEO");
+                Log.d(LOG_TAG, "LOGIN DE SPOTIFY ERRONEO");
                 Toast.makeText(this, "Error al iniciar sesión con Spotify", Toast.LENGTH_LONG).show();
                 break;
             default:
@@ -141,15 +139,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void sendGoogleSignInRequest() {
-        DbHelper dbHelper = new DbHelper(this);
         JSONObject json = new JSONObject();
         try {
             json.put("operation", "insertUser");
             json.put("name", account.getGivenName());
             json.put("lastName", account.getFamilyName());
             json.put("email", account.getEmail());
-            Log.d("JSON", json.toString());
-            dbHelper.mySqlRequest(json);
+            Log.d(LOG_TAG, json.toString());
+            DbTask dbTask = new DbTask(this);
+            dbTask.execute(json);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -197,15 +195,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             } else {
                 Log.d("LOGINACTIVITY", "No se necesita recoger libreria del usuario");
                 Toast.makeText(this, "El usuario se ha logueado", Toast.LENGTH_LONG).show();
-                User user = User.getInstance();
-                user.setEmail(account.getEmail());
-                user.setName(account.getGivenName());
-                user.setLastName(account.getFamilyName());
                 Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }
-            Log.d("LOGINACTIVITY", "El usuario se ha logueado correctamente");
         }
     }
 
@@ -219,14 +212,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String operation = jsonObject.getString("operation");
                 switch (operation) {
                     case "insertUser":
-                        loginGoogleButton.setEnabled(jsonObject.getBoolean("error"));
-                        if(!jsonObject.getBoolean("error")) {
-                            requestSpotifyData = !jsonObject.getBoolean("alreadyRegistered");
+                        boolean error = jsonObject.getBoolean("error");
+                        loginGoogleButton.setEnabled(error);
+                        if(!error) {
+                            boolean alreadyRegistered, isPub;
+                            alreadyRegistered = jsonObject.getBoolean("alreadyRegistered");
+                            isPub = jsonObject.getBoolean("isPub");
+                            User user = User.getInstance();
+                            user.setEmail(account.getEmail());
+                            user.setName(account.getGivenName());
+                            user.setLastName(account.getFamilyName());
+                            user.setPub(isPub);
+                            requestSpotifyData = !alreadyRegistered && !isPub;
                             loginGoogle = true;
                             checkLoginStatus();
                             Log.d("GOOGLE", "LOGIN SATISFACTORIO");
                         } else {
-                            Toast.makeText(this, "Ha ocurrido un error", Toast.LENGTH_LONG).show();
+                            loginGoogleButton.setEnabled(true);
+                            Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
                         }
                         break;
                     case "insertUserTracks":
@@ -234,11 +237,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         int tracksRecorded = jsonObject.getInt("tracksRecorded");
                         Log.d("LOGINACTIVITY", "El servidor ha insertado:" + tracksRecorded + " canciones y faltan " + tracksLeft + " por insertar");
                         if(tracksLeft == 0) {
-                            LoginActivity.requestSpotifyData = false;
+                            requestSpotifyData = false;
                             progressBar.setProgress(controller.getTracksNumber());
                             checkLoginStatus();
                         } else {
-                            //progressBar.setProgress(100 - ((tracksLeft * 100) / controller.getTracksNumber()));
                             progressBar.setProgress(controller.getTracksNumber() - tracksLeft);
                         }
                         break;

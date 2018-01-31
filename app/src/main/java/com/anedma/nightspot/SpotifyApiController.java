@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.anedma.nightspot.activities.LoginActivity;
+import com.anedma.nightspot.async.AsyncResponse;
+import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.database.DbHelper;
 import com.anedma.nightspot.exception.SQLiteInsertException;
 
@@ -33,24 +35,21 @@ import retrofit.client.Response;
 
 public class SpotifyApiController {
 
+    private AsyncResponse delegate;
     private static SpotifyService service;
     private static UserPrivate user = null;
     private static List<PlaylistSimple> myPlaylists = new ArrayList<>();
     private static List<PlaylistTrack> myPlaylistTracks = new ArrayList<>();
     private static List<PlaylistTrack> tracksLeft = new ArrayList<>();
     private static int pendingCalls = 0;
-    private Context context;
 
-    public SpotifyApiController(String accessToken) {
+    public SpotifyApiController(String accessToken, AsyncResponse delegate) {
         SpotifyApi api = new SpotifyApi();
+        this.delegate = delegate;
         if (!accessToken.isEmpty()) {
             api.setAccessToken(accessToken);
         }
         service = api.getService();
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
     }
 
     public void getUserData() {
@@ -115,7 +114,7 @@ public class SpotifyApiController {
             @Override
             public void success(Pager<PlaylistTrack> playlistTrackPager, Response response) {
                 myPlaylistTracks.addAll(playlistTrackPager.items);
-                LoginActivity loginActivity = (LoginActivity) context;
+                LoginActivity loginActivity = (LoginActivity) delegate;
                 loginActivity.progressBar.setMax(myPlaylistTracks.size());
                 pendingCalls--;
                 Log.d("SPOTIFYAPI", "Pendientes: " + pendingCalls + " - Añadiendo " + playlistTrackPager.items.size() + " canciones de la lista " + playlist.name + " ID: " + playlist.id);
@@ -135,9 +134,9 @@ public class SpotifyApiController {
 
     private void insertTracksIntoDB() {
         //TODO: Revisar este método
-        if(context != null) {
-            DbHelper dbHelper = new DbHelper(context);
-            LoginActivity loginActivity = (LoginActivity) context;
+        if(delegate != null) {
+            DbHelper dbHelper = new DbHelper((LoginActivity) delegate);
+            LoginActivity loginActivity = (LoginActivity) delegate;
             tracksLeft.addAll(myPlaylistTracks);
             JSONArray jsonTracks = new JSONArray();
             try {
@@ -177,7 +176,8 @@ public class SpotifyApiController {
             json.put("tracksLeft", tracksLeft);
             //Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
             //Log.d("SPOTIFYAPI", json.toString());
-            dbHelper.mySqlRequest(json);
+            DbTask task = new DbTask(delegate);
+            task.execute(json);
         } catch (JSONException e) {
             e.printStackTrace();
         }

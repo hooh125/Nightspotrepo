@@ -23,20 +23,35 @@ import android.widget.Toast;
 
 import com.anedma.nightspot.FingerprinterThread;
 import com.anedma.nightspot.R;
+import com.anedma.nightspot.async.AsyncResponse;
+import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.dto.Pub;
+import com.anedma.nightspot.dto.User;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse {
 
     private static final String LOG_TAG = "MAINACTIVITY";
     private static final int PERMISSION_REQUEST_LOCATION = 1;
     private Context context;
+    private User user;
     private Button buttonAddPub;
     private DrawerLayout mDrawerLayout;
+    private GoogleMap map;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
+    private ArrayList<Pub> pubList = new ArrayList<>();
     private FloatingActionButton fab;
 
     @Override
@@ -44,6 +59,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         this.context = this;
+        this.user = User.getInstance();
+
         mToolbar = findViewById(R.id.toolbar);
 
         setSupportActionBar(mToolbar);
@@ -53,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        loadUserPubs();
 
 
     }
@@ -77,19 +96,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mDrawerToggle.syncState();
         buttonAddPub = findViewById(R.id.include_left_drawer).findViewById(R.id.button_add_pub);
+        buttonAddPub.setVisibility(!user.isPub() ? View.VISIBLE : View.INVISIBLE);
         buttonAddPub.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPubRegActivity();
+                @Override
+                public void onClick(View v) {
+                    startPubRegActivity();
+                }
+            });
+    }
+
+    private void loadUserPubs() {
+        if(!user.isPub()) {
+            DbTask dbTask = new DbTask(this);
+            JSONObject json = new JSONObject();
+            try {
+                json.put("operation", "getUserPubs");
+                json.put("email", user.getEmail());
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        });
+            dbTask.execute(json);
+        } else {
+            Log.d(LOG_TAG, "El usuario es un Pub, no cargará nada en el mapa");
+        }
     }
 
     private void startPubRegActivity() {
         Log.d(LOG_TAG, "Iniciando actividad para registro de Pub");
         Intent intent = new Intent(context, PubRegActivity.class);
         startActivity(intent);
-        finish();
+    }
+
+    private void fillMapWithPubs() {
+        if(map != null && pubList.size() > 0) {
+            for(Pub pub : pubList)
+                map.addMarker(new MarkerOptions().position(pub.getLatLng()).title(pub.getName()));
+        }
     }
 
     @Override
@@ -135,6 +177,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         map.setMyLocationEnabled(true);
+        this.map = map;
+        fillMapWithPubs();
+    }
+
+    @Override
+    public void processFinish(JSONObject jsonObject) {
+        try {
+            String operacion = jsonObject.getString("operation");
+            if(operacion.equals("getUserPubs")) {
+                JSONArray pubs = jsonObject.getJSONArray("pubs");
+                pubList = new ArrayList<>();
+                for(int i=0; i<pubs.length(); i++) {
+                    JSONObject jsonPub = pubs.getJSONObject(i);
+                    String name = jsonPub.getString("name");
+                    String description = jsonPub.getString("description");
+                    String phone = jsonPub.getString("phone");
+                    String lat = jsonPub.getString("lat");
+                    String lng = jsonPub.getString("lng");
+                    int affinity = Integer.parseInt(jsonPub.getString("affinity"));
+                    LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+                    pubList.add(new Pub(name, description, position, phone, affinity));
+                }
+                fillMapWithPubs();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private class DrawerToggle extends ActionBarDrawerToggle {

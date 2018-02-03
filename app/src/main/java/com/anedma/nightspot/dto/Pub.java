@@ -15,9 +15,9 @@ public class Pub {
     private String description;
     private LatLng latLng;
     private String phone;
-    private int affinity;
+    private String affinity;
 
-    public Pub(String name, String description, LatLng latLng, String phone, int affinity) {
+    public Pub(String name, String description, LatLng latLng, String phone, String affinity) {
         this.name = name;
         this.description = description;
         this.latLng = latLng;
@@ -48,7 +48,7 @@ public class Pub {
         return phone;
     }
 
-    public int getAffinity() {
+    public String getAffinity() {
         return affinity;
     }
 }

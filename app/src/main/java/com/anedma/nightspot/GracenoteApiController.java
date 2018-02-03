@@ -43,6 +43,8 @@ import com.gracenote.gnsdk.IGnLookupLocalStreamIngestEvents;
 import com.gracenote.gnsdk.IGnMusicIdStreamEvents;
 import com.gracenote.gnsdk.IGnSystemEvents;
 
+import org.apache.commons.validator.routines.UrlValidator;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -61,9 +63,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     private static GracenoteApiController instance;
     private static GracenoteResponse delegate;
     private Context context;
-    private static final String 				gnsdkClientId 			= "933788263";
-    private static final String 				gnsdkClientTag 			= "A8B4ECE6DAE23A832C82CB041EAE6EBF";
-    private static final String 				gnsdkLicenseFilename 	= "license.txt";
+    private static final String gnsdkClientId = "933788263";
+    private static final String gnsdkClientTag = "A8B4ECE6DAE23A832C82CB041EAE6EBF";
+    private static final String gnsdkLicenseFilename = "license.txt";
     private static final String appString = "NightSpot";
     private boolean isProcessing = false;
 
@@ -75,9 +77,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     private IGnAudioSource gnMicrophone;
     private GnLocale gnLocale;
     private GnLog gnLog;
-    private List<GnMusicId> idObjects				= new ArrayList<>();
-    private List<GnMusicIdFile>			fileIdObjects			= new ArrayList<>();
-    private List<GnMusicIdStream>		streamIdObjects			= new ArrayList<>();
+    private List<GnMusicId> idObjects = new ArrayList<>();
+    private List<GnMusicIdFile> fileIdObjects = new ArrayList<>();
+    private List<GnMusicIdStream> streamIdObjects = new ArrayList<>();
     private long lastLookup_startTime;
 
     private GracenoteApiController(Context context, GracenoteResponse delegate) throws GnException {
@@ -85,10 +87,10 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         this.delegate = delegate;
         gnManager = new GnManager(this.context, getAssetAsString(gnsdkLicenseFilename), GnLicenseInputMode.kLicenseInputModeString);
         gnManager.systemEventHandler(this);
-        gnUser = new GnUser( new GnUserStore(context), gnsdkClientId, gnsdkClientTag, appString );
+        gnUser = new GnUser(new GnUserStore(context), gnsdkClientId, gnsdkClientTag, appString);
         GnStorageSqlite.enable();
         GnLookupLocalStream.enable();
-        Thread ingestThread = new Thread( new LocalBundleIngestRunnable(context) );
+        Thread ingestThread = new Thread(new LocalBundleIngestRunnable(context));
         ingestThread.start();
         gnLocale =
                 new GnLocale(GnLocaleGroup.kLocaleGroupMusic,
@@ -97,23 +99,23 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                         GnDescriptor.kDescriptorDefault,
                         gnUser);
         gnLocale.setGroupDefault();
-        gnMicrophone = new AudioVisualizeAdapter( new GnMic() );
-        gnMusicIdStream = new GnMusicIdStream( gnUser, GnMusicIdStreamPreset.kPresetMicrophone, this);
+        gnMicrophone = new AudioVisualizeAdapter(new GnMic());
+        gnMusicIdStream = new GnMusicIdStream(gnUser, GnMusicIdStreamPreset.kPresetMicrophone, this);
         gnMusicIdStream.options().lookupData(GnLookupData.kLookupDataContent, true);
         gnMusicIdStream.options().lookupData(GnLookupData.kLookupDataSonicData, true);
-        gnMusicIdStream.options().resultSingle( true );
-        streamIdObjects.add( gnMusicIdStream );
+        gnMusicIdStream.options().resultSingle(true);
+        streamIdObjects.add(gnMusicIdStream);
     }
 
     static GracenoteApiController getInstance(Context context, GracenoteResponse delegate) throws GnException {
-        if(instance == null) {
+        if (instance == null) {
             instance = new GracenoteApiController(context, delegate);
         }
         return instance;
     }
 
     void startAudioProcessing() {
-        if ( gnMusicIdStream != null ) {
+        if (gnMusicIdStream != null) {
 
             // Create a thread to process the data pulled from GnMic
             // Internally pulling data is a blocking call, repeatedly called until
@@ -125,7 +127,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     }
 
     void stopAudioProcessing() {
-        if ( gnMusicIdStream != null ) {
+        if (gnMusicIdStream != null) {
 
             try {
 
@@ -140,7 +142,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
             } catch (GnException e) {
 
-                Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + " : " + e.errorAPI() + ": " +  e.errorDescription());
+                Log.e(appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + " : " + e.errorAPI() + ": " + e.errorDescription());
 
             }
 
@@ -153,32 +155,32 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             gnMusicIdStream.identifyAlbumAsync();
             lastLookup_startTime = SystemClock.elapsedRealtime();
         } catch (GnException e) {
-            Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ", " + e.errorAPI() + ": " +  e.errorDescription() );
+            Log.e(appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ", " + e.errorAPI() + ": " + e.errorDescription());
         }
     }
 
-    private String getAssetAsString( String assetName ){
+    private String getAssetAsString(String assetName) {
 
-        String 		assetString = null;
+        String assetString = null;
         InputStream assetStream;
 
         try {
 
             assetStream = context.getAssets().open(assetName);
-            if(assetStream != null){
+            if (assetStream != null) {
 
                 java.util.Scanner s = new java.util.Scanner(assetStream).useDelimiter("\\A");
 
                 assetString = s.hasNext() ? s.next() : "";
                 assetStream.close();
 
-            }else{
+            } else {
                 Log.e(appString, "Asset not found:" + assetName);
             }
 
         } catch (IOException e) {
 
-            Log.e( appString, "Error getting asset as string: " + e.getMessage() );
+            Log.e(appString, "Error getting asset as string: " + e.getMessage());
 
         }
 
@@ -213,9 +215,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     @Override
     public void musicIdStreamAlbumResult(GnResponseAlbums gnResponseAlbums, IGnCancellable iGnCancellable) {
         Log.d("RESPONSE", "Gracenote ha devuelto " + gnResponseAlbums.resultCount());
-        if(gnResponseAlbums.resultCount() > 0) {
+        if (gnResponseAlbums.resultCount() > 0) {
             GnAlbumIterator iterator = gnResponseAlbums.albums().getIterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 try {
                     GnAlbum gnAlbum = iterator.next();
                     URL albumImgURL = new URL(gnAlbum.coverArt().assets().getIterator().next().urlHttp());
@@ -224,7 +226,12 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                     String artist = (!trackArtist.isEmpty()) ? trackArtist : albumArtist;
                     String song = gnAlbum.trackMatched().title().display();
                     String album = gnAlbum.title().display();
-                    Track track = new Track(artist, song, album, albumImgURL);
+                    Track track;
+                    if (checkValidURL(albumImgURL)) {
+                        track = new Track(artist, song, album, albumImgURL);
+                    } else {
+                        track = new Track(artist, song, album);
+                    }
                     delegate.trackReturned(track);
                     //MANEJAR AQUÍ LO QUE SE HARÁ CON EL TRACK
                 } catch (GnException | MalformedURLException e) {
@@ -237,6 +244,16 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
     public boolean isProcessing() {
         return isProcessing;
+    }
+
+    private boolean checkValidURL(URL url) {
+        String[] schemes = {"http", "https"}; // DEFAULT schemes = "http", "https", "ftp"
+        UrlValidator urlValidator = new UrlValidator(schemes);
+        if (urlValidator.isValid(url.toString())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -265,10 +282,10 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                 // bundles should not be delivered with the package as this, rather they
                 // should be downloaded from your own online service
 
-                InputStream 	bundleInputStream 	= null;
-                int				ingestBufferSize	= 1024;
-                byte[] 			ingestBuffer 		= new byte[ingestBufferSize];
-                int				bytesRead			= 0;
+                InputStream bundleInputStream = null;
+                int ingestBufferSize = 1024;
+                byte[] ingestBuffer = new byte[ingestBufferSize];
+                int bytesRead = 0;
 
                 GnLookupLocalStreamIngest ingester = new GnLookupLocalStreamIngest(new BundleIngestEvents());
 
@@ -279,12 +296,12 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                     do {
 
                         bytesRead = bundleInputStream.read(ingestBuffer, 0, ingestBufferSize);
-                        if ( bytesRead == -1 )
+                        if (bytesRead == -1)
                             bytesRead = 0;
 
-                        ingester.write( ingestBuffer, bytesRead );
+                        ingester.write(ingestBuffer, bytesRead);
 
-                    } while( bytesRead != 0 );
+                    } while (bytesRead != 0);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -293,7 +310,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                 ingester.flush();
 
             } catch (GnException e) {
-                Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() );
+                Log.e(appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule());
             }
 
         }
@@ -306,11 +323,11 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             try {
 
                 // start audio processing with GnMic, GnMusicIdStream pulls data from GnMic internally
-                gnMusicIdStream.audioProcessStart( gnMicrophone );
+                gnMusicIdStream.audioProcessStart(gnMicrophone);
 
             } catch (GnException e) {
 
-                Log.e( appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ": " + e.errorAPI() + ": " +  e.errorDescription()  );
+                Log.e(appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + ": " + e.errorAPI() + ": " + e.errorDescription());
             }
         }
     }
@@ -325,25 +342,25 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
     class AudioVisualizeAdapter implements IGnAudioSource {
 
-        private IGnAudioSource 	audioSource;
-        private int				numBitsPerSample;
-        private int				numChannels;
+        private IGnAudioSource audioSource;
+        private int numBitsPerSample;
+        private int numChannels;
 
-        public AudioVisualizeAdapter( IGnAudioSource audioSource ){
+        public AudioVisualizeAdapter(IGnAudioSource audioSource) {
             this.audioSource = audioSource;
         }
 
         @Override
         public long sourceInit() {
-            if ( audioSource == null ){
+            if (audioSource == null) {
                 return 1;
             }
             long retVal = audioSource.sourceInit();
 
             // get format information for use later
-            if ( retVal == 0 ) {
-                numBitsPerSample = (int)audioSource.sampleSizeInBits();
-                numChannels = (int)audioSource.numberOfChannels();
+            if (retVal == 0) {
+                numBitsPerSample = (int) audioSource.sampleSizeInBits();
+                numChannels = (int) audioSource.numberOfChannels();
             }
 
             return retVal;
@@ -361,7 +378,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
         @Override
         public long samplesPerSecond() {
-            if ( audioSource == null ){
+            if (audioSource == null) {
                 return 0;
             }
             return audioSource.samplesPerSecond();
@@ -369,13 +386,13 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
         @Override
         public long getData(ByteBuffer buffer, long bufferSize) {
-            if ( audioSource == null ){
+            if (audioSource == null) {
                 return 0;
             }
 
             long numBytes = audioSource.getData(buffer, bufferSize);
 
-            if ( numBytes != 0 ) {
+            if (numBytes != 0) {
                 // perform visualization effect here
                 // Note: Since API level 9 Android provides android.media.audiofx.Visualizer which can be used to obtain the
                 // raw waveform or FFT, and perform measurements such as peak RMS. You may wish to consider Visualizer class
@@ -390,56 +407,54 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
         @Override
         public void sourceClose() {
-            if ( audioSource != null ){
+            if (audioSource != null) {
                 audioSource.sourceClose();
             }
         }
 
         // calculate the rms as a percent of maximum
-        private int rmsPercentOfMax( ByteBuffer buffer, long bufferSize, int numBitsPerSample, int numChannels) {
+        private int rmsPercentOfMax(ByteBuffer buffer, long bufferSize, int numBitsPerSample, int numChannels) {
             double rms = 0.0;
-            if ( numBitsPerSample == 8 ) {
-                rms = rms8( buffer, bufferSize, numChannels );
-                return (int)((rms*100)/(double)((double)(Byte.MAX_VALUE/2)));
+            if (numBitsPerSample == 8) {
+                rms = rms8(buffer, bufferSize, numChannels);
+                return (int) ((rms * 100) / (double) ((double) (Byte.MAX_VALUE / 2)));
             } else {
-                rms = rms16( buffer, bufferSize, numChannels );
-                return (int)((rms*100)/(double)((double)(Short.MAX_VALUE/2)));
+                rms = rms16(buffer, bufferSize, numChannels);
+                return (int) ((rms * 100) / (double) ((double) (Short.MAX_VALUE / 2)));
             }
         }
 
         // calculate the rms of a buffer containing 8 bit audio samples
-        private double rms8 ( ByteBuffer buffer, long bufferSize, int numChannels ) {
+        private double rms8(ByteBuffer buffer, long bufferSize, int numChannels) {
 
             long sum = 0;
-            long numSamplesPerChannel = bufferSize/numChannels;
+            long numSamplesPerChannel = bufferSize / numChannels;
 
-            for(int i = 0; i < numSamplesPerChannel; i+=numChannels)
-            {
+            for (int i = 0; i < numSamplesPerChannel; i += numChannels) {
                 byte sample = buffer.get();
                 sum += (sample * sample);
             }
 
-            return Math.sqrt( (double)(sum / numSamplesPerChannel) );
+            return Math.sqrt((double) (sum / numSamplesPerChannel));
         }
 
         // calculate the rms of a buffer containing 16 bit audio samples
-        private double rms16 ( ByteBuffer buffer, long bufferSize, int numChannels ) {
+        private double rms16(ByteBuffer buffer, long bufferSize, int numChannels) {
 
             long sum = 0;
-            long numSamplesPerChannel = (bufferSize/2)/numChannels;	// 2 bytes per sample
+            long numSamplesPerChannel = (bufferSize / 2) / numChannels;    // 2 bytes per sample
 
             buffer.rewind();
-            for(int i = 0; i < numSamplesPerChannel; i++)
-            {
+            for (int i = 0; i < numSamplesPerChannel; i++) {
                 short sample = Short.reverseBytes(buffer.getShort()); // reverse because raw data is little endian but Java short is big endian
 
                 sum += (sample * sample);
-                if ( numChannels == 2 ){
+                if (numChannels == 2) {
                     buffer.getShort();
                 }
             }
 
-            return Math.sqrt( (double)(sum / numSamplesPerChannel) );
+            return Math.sqrt((double) (sum / numSamplesPerChannel));
         }
     }
 

@@ -1,6 +1,7 @@
 package com.anedma.nightspot.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -22,14 +23,21 @@ import android.widget.TextView;
 
 import com.anedma.nightspot.FingerprinterThread;
 import com.anedma.nightspot.R;
+import com.anedma.nightspot.async.AsyncResponse;
+import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.async.GracenoteResponse;
 import com.anedma.nightspot.dto.Track;
+import com.anedma.nightspot.dto.User;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PrintTracksActivity extends AppCompatActivity implements View.OnClickListener, GracenoteResponse {
+public class PrintTracksActivity extends AppCompatActivity implements View.OnClickListener, GracenoteResponse, AsyncResponse {
 
     private static final String LOG_TAG = "PRINTTRACKSACTIVITY";
     private List<Track> tracks = new ArrayList<>();
@@ -100,7 +108,43 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        //TODO: Enviar los datos contenidos en Tracks a la base de datos
+        User user = User.getInstance();
+        JSONObject json = new JSONObject();
+        JSONArray jsonTracks = new JSONArray();
+        try {
+            for (Track track : tracks) {
+                JSONObject jsonTrack = new JSONObject();
+                jsonTrack.put("song", track.getSong());
+                jsonTrack.put("artist", track.getArtist());
+                jsonTrack.put("album", track.getAlbum());
+                jsonTracks.put(jsonTrack);
+            }
+            json.put("operation", "insertPubTracks");
+            json.put("email", user.getEmail());
+            json.put("tracks", jsonTracks);
+            DbTask task = new DbTask(this);
+            task.execute(json);
+            Log.d(LOG_TAG, json.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void processFinish(JSONObject jsonObject) {
+        try {
+            boolean error = jsonObject.getBoolean("error");
+            if(!error) {
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Log.d(LOG_TAG, "Ha ocurrido un error al insertar los tracks del pub");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private class TrackAdapter extends BaseAdapter {

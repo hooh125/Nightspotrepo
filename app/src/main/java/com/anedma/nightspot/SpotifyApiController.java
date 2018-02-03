@@ -1,6 +1,5 @@
 package com.anedma.nightspot;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.anedma.nightspot.activities.LoginActivity;
@@ -17,11 +16,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
-import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.Pager;
 import kaaes.spotify.webapi.android.models.PlaylistSimple;
@@ -35,6 +37,7 @@ import retrofit.client.Response;
 
 public class SpotifyApiController {
 
+    private static final String LOG_TAG = "SPOTIFYAPICONTROLLER";
     private AsyncResponse delegate;
     private static SpotifyService service;
     private static UserPrivate user = null;
@@ -150,14 +153,14 @@ public class SpotifyApiController {
                         jsonTracks.put(track);
                         tracksLeft.remove(plTrack);
                         if(jsonTracks.length() == 300) {
-                            insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
+                            insertUserTracksOnline(loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
                             jsonTracks = new JSONArray();
                         }
                     } catch (SQLiteInsertException e) {
                         e.printStackTrace();
                     }
                 }
-                insertUserTracksOnline(dbHelper, loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
+                insertUserTracksOnline(loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -167,17 +170,18 @@ public class SpotifyApiController {
         }
     }
 
-    private void insertUserTracksOnline(DbHelper dbHelper, String email, JSONArray tracks, int tracksLeft) {
+    private void insertUserTracksOnline(String email, JSONArray tracks, int tracksLeft) {
         JSONObject json = new JSONObject();
         try {
             json.put("operation", "insertUserTracks");
+            json.put("tracksLeft", tracksLeft);
             json.put("email", email);
             json.put("tracks", tracks);
-            json.put("tracksLeft", tracksLeft);
             //Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
             //Log.d("SPOTIFYAPI", json.toString());
             DbTask task = new DbTask(delegate);
             task.execute(json);
+            Log.d(LOG_TAG, json.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -199,7 +203,7 @@ public class SpotifyApiController {
     }
 
     private String removeSpecialCharacters(String string) {
-        return string.replaceAll("[^a-zA-Z0-9\\s]+","");
+        return string.replaceAll("[^A-zÀ-ÿ0-9'.,&]+"," ");
     }
 
     public int getTracksNumber() {

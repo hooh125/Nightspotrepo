@@ -177,6 +177,8 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         if(jsonObject != null) {
             try {
                 if(!jsonObject.getBoolean("error")) {
+                    User user = User.getInstance();
+                    user.setPub(true);
                     Log.d(LOG_TAG, "Pub registrado correctamente");
                     Log.d(LOG_TAG, jsonObject.toString());
                     startPrintTracksActivity();

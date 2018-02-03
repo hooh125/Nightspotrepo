@@ -26,4 +26,7 @@
     <string name="hint_phone">Phone</string>
     <string name="pub_register_button">Register</string>
     <string name="add_pub_button">Add new Pub</string>
+    <string name="print_tracks_button">Print tracks</string>
+    <string name="button_send_pub_tracks">Send</string>
+    <string name="button_skip_send_tracks">Skip</string>
 </resources>

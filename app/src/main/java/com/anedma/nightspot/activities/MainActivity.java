@@ -21,16 +21,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.anedma.nightspot.FingerprinterThread;
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.dto.Pub;
 import com.anedma.nightspot.dto.User;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int PERMISSION_REQUEST_LOCATION = 1;
     private Context context;
     private User user;
-    private Button buttonAddPub;
+    private Button buttonActionDrawer;
     private DrawerLayout mDrawerLayout;
     private GoogleMap map;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -72,8 +74,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         loadUserPubs();
-
-
     }
 
     private void setupFAB() {
@@ -95,14 +95,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mDrawerToggle.syncState();
-        buttonAddPub = findViewById(R.id.include_left_drawer).findViewById(R.id.button_add_pub);
-        buttonAddPub.setVisibility(!user.isPub() ? View.VISIBLE : View.INVISIBLE);
-        buttonAddPub.setOnClickListener(new View.OnClickListener() {
+        buttonActionDrawer = findViewById(R.id.include_left_drawer).findViewById(R.id.button_action_drawer);
+        buttonActionDrawer.setText((user.isPub()) ? R.string.print_tracks_button : R.string.add_pub_button);
+        buttonActionDrawer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startPubRegActivity();
+                    if(user.isPub()) {
+                        startPrintTracksActivity();
+                    } else {
+                        startPubRegActivity();
+                    }
                 }
             });
+    }
+
+    private void startPrintTracksActivity() {
+        Log.d(LOG_TAG, "Iniciando actividad para crear una huella musical en el Pub");
+        Intent intent = new Intent(context, PrintTracksActivity.class);
+        startActivity(intent);
     }
 
     private void loadUserPubs() {
@@ -127,10 +137,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
     }
 
-    private void fillMapWithPubs() {
+    private void fillMap() {
         if(map != null && pubList.size() > 0) {
-            for(Pub pub : pubList)
+            LatLngBounds.Builder bld = new LatLngBounds.Builder();
+            for(Pub pub : pubList) {
                 map.addMarker(new MarkerOptions().position(pub.getLatLng()).title(pub.getName()));
+                bld.include(pub.getLatLng());
+            }
+            LatLngBounds bounds = bld.build();
+            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
         }
     }
 
@@ -178,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         map.setMyLocationEnabled(true);
         this.map = map;
-        fillMapWithPubs();
+        fillMap();
     }
 
     @Override
@@ -186,20 +201,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             String operacion = jsonObject.getString("operation");
             if(operacion.equals("getUserPubs")) {
-                JSONArray pubs = jsonObject.getJSONArray("pubs");
-                pubList = new ArrayList<>();
-                for(int i=0; i<pubs.length(); i++) {
-                    JSONObject jsonPub = pubs.getJSONObject(i);
-                    String name = jsonPub.getString("name");
-                    String description = jsonPub.getString("description");
-                    String phone = jsonPub.getString("phone");
-                    String lat = jsonPub.getString("lat");
-                    String lng = jsonPub.getString("lng");
-                    int affinity = Integer.parseInt(jsonPub.getString("affinity"));
-                    LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                    pubList.add(new Pub(name, description, position, phone, affinity));
+                boolean error = jsonObject.getBoolean("error");
+                String message = jsonObject.getString("message");
+                if(!error) {
+                    JSONArray pubs = jsonObject.getJSONArray("pubs");
+                    pubList = new ArrayList<>();
+                    for(int i=0; i<pubs.length(); i++) {
+                        JSONObject jsonPub = pubs.getJSONObject(i);
+                        String name = jsonPub.getString("name");
+                        String description = jsonPub.getString("description");
+                        String phone = jsonPub.getString("phone");
+                        String lat = jsonPub.getString("lat");
+                        String lng = jsonPub.getString("lng");
+                        String affinity = jsonPub.getString("affinity");
+                        LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+                        pubList.add(new Pub(name, description, position, phone, affinity));
+                    }
+                    fillMap();
+                } else {
+                    Log.d(LOG_TAG, message);
                 }
-                fillMapWithPubs();
             }
         } catch (JSONException e) {
             e.printStackTrace();

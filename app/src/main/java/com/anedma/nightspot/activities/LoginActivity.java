@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private ImageButton loginSpotifyButton;
     private static boolean loginGoogle = false;
     private static boolean loginSpotify = false;
+    private static boolean isPub = false;
     public static boolean requestSpotifyData = false;
     public GoogleSignInAccount account;
     public ProgressBar progressBar;
@@ -180,7 +181,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void checkLoginStatus() {
         loginGoogleButton.setEnabled(!loginGoogle);
         loginSpotifyButton.setEnabled(!loginSpotify);
-        if(loginGoogle && loginSpotify) {
+        if(loginGoogle && (loginSpotify || isPub)) {
             if(requestSpotifyData) {
                 Log.d("LOGINACTIVITY", "Intentando recoger librería del usuario");
                 controller.getUserData();
@@ -215,7 +216,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         boolean error = jsonObject.getBoolean("error");
                         loginGoogleButton.setEnabled(error);
                         if(!error) {
-                            boolean alreadyRegistered, isPub;
+                            boolean alreadyRegistered;
                             alreadyRegistered = jsonObject.getBoolean("alreadyRegistered");
                             isPub = jsonObject.getBoolean("isPub");
                             User user = User.getInstance();

@@ -12,7 +12,7 @@
 
 
     <Button
-        android:id="@+id/button_add_pub"
+        android:id="@+id/button_action_drawer"
         android:layout_width="170dp"
         android:layout_height="51dp"
         android:layout_marginBottom="16dp"

@@ -3,8 +3,6 @@ package com.anedma.nightspot.activities;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,10 +19,12 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.anedma.nightspot.DownloadImageTask;
 import com.anedma.nightspot.FingerprinterThread;
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.async.DownloadImageResponse;
 import com.anedma.nightspot.async.GracenoteResponse;
 import com.anedma.nightspot.dto.Track;
 import com.anedma.nightspot.dto.User;
@@ -33,7 +33,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -187,7 +186,7 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            ViewHolder viewHolder;
+            final ViewHolder viewHolder;
 
             if (convertView == null) {
 
@@ -203,7 +202,12 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
             viewHolder.tvSong.setText(track.getSong());
             viewHolder.tvArtist.setText(track.getArtist());
             if(track.getAlbumImageUrl() != null) {
-                DownloadImageTask task = new DownloadImageTask(viewHolder.ivAlbumImg);
+                DownloadImageTask task = new DownloadImageTask(new DownloadImageResponse() {
+                    @Override
+                    public void downloadFinished(Bitmap bitmap) {
+                        viewHolder.ivAlbumImg.setImageBitmap(bitmap);
+                    }
+                });
                 task.execute(track.getAlbumImageUrl().toString());
             }
 
@@ -211,29 +215,5 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView bmImage;
-
-        public DownloadImageTask(ImageView bmImage) {
-            this.bmImage = bmImage;
-        }
-
-        protected Bitmap doInBackground(String... urls) {
-            String urldisplay = urls[0];
-            Bitmap mIcon11 = null;
-            try {
-                InputStream in = new java.net.URL(urldisplay).openStream();
-                mIcon11 = BitmapFactory.decodeStream(in);
-            } catch (Exception e) {
-                Log.e("Error", e.getMessage());
-                e.printStackTrace();
-            }
-            return mIcon11;
-        }
-
-        protected void onPostExecute(Bitmap result) {
-            bmImage.setImageBitmap(result);
-        }
-    }
 
 }

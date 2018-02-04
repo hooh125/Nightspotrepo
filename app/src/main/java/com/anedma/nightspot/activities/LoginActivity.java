@@ -224,6 +224,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             user.setName(account.getGivenName());
                             user.setLastName(account.getFamilyName());
                             user.setPub(isPub);
+                            user.setPhotoUri(account.getPhotoUrl());
                             requestSpotifyData = !alreadyRegistered && !isPub;
                             loginGoogle = true;
                             checkLoginStatus();

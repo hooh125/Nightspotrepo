@@ -7,6 +7,7 @@ android {
         applicationId "com.anedma.nightspot"
         minSdkVersion 21
         targetSdkVersion 27
+        vectorDrawables.useSupportLibrary = true
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -28,6 +29,7 @@ repositories {
 
 dependencies {
     compile 'commons-validator:commons-validator:1.6'
+    compile 'com.google.android.gms:play-services-location:11.8.0'
     compile 'com.android.support:appcompat-v7:27.0.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:27.0.2'

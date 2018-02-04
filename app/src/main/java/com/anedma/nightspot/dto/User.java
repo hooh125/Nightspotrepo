@@ -1,5 +1,10 @@
 package com.anedma.nightspot.dto;
 
+import android.net.Uri;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 26/01/2018.
  */
@@ -11,19 +16,21 @@ public class User {
     private static String lastName;
     private static String email;
     private static boolean isPub;
+    private static Uri photoUri;
 
     public static User getInstance() {
         if(instance == null) {
-            instance = new User(name, lastName, email, isPub);
+            instance = new User(name, lastName, email, isPub, photoUri);
         }
         return instance;
     }
 
-    private User(String name, String lastName, String email, boolean isPub) {
+    private User(String name, String lastName, String email, boolean isPub, Uri photoUri) {
         User.name = name;
         User.lastName = lastName;
         User.email = email;
         User.isPub = isPub;
+        User.photoUri = photoUri;
     }
 
     public void setName(String name) {
@@ -57,4 +64,19 @@ public class User {
     public String getEmail() {
         return email;
     }
+
+    public URL getPhotoURL() {
+        try {
+            return new URL(photoUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void setPhotoUri(Uri photoUri) {
+
+        User.photoUri = photoUri;
+    }
+
 }

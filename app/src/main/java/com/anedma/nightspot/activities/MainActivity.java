@@ -1,14 +1,19 @@
 package com.anedma.nightspot.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -19,33 +24,47 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.anedma.nightspot.DownloadImageTask;
 import com.anedma.nightspot.R;
+import com.anedma.nightspot.ResourceUtil;
 import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.async.DownloadImageResponse;
 import com.anedma.nightspot.dto.Pub;
 import com.anedma.nightspot.dto.User;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse {
 
     private static final String LOG_TAG = "MAINACTIVITY";
-    private static final int PERMISSION_REQUEST_LOCATION = 1;
+    private static final int PERMISSION_REQUEST_LOCATION = 154;
     private Context context;
     private User user;
     private Button buttonActionDrawer;
@@ -55,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Toolbar mToolbar;
     private ArrayList<Pub> pubList = new ArrayList<>();
     private FloatingActionButton fab;
+    private FusedLocationProviderClient mFusedLocationClient;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +87,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mToolbar = findViewById(R.id.toolbar);
 
         setSupportActionBar(mToolbar);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         setupNavigationDrawer();
         setupFAB();
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        requestPermissionForLocation();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         loadUserPubs();
@@ -95,18 +120,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mDrawerToggle.syncState();
-        buttonActionDrawer = findViewById(R.id.include_left_drawer).findViewById(R.id.button_action_drawer);
+        View leftDrawer = findViewById(R.id.include_left_drawer);
+        buttonActionDrawer = leftDrawer.findViewById(R.id.button_action_drawer);
         buttonActionDrawer.setText((user.isPub()) ? R.string.print_tracks_button : R.string.add_pub_button);
         buttonActionDrawer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (user.isPub()) {
+                    startPrintTracksActivity();
+                } else {
+                    startPubRegActivity();
+                }
+            }
+        });
+        //Cargamos los datos del usuario y su foto en el navigation drawer
+        final ImageView ivUserPhoto = leftDrawer.findViewById(R.id.iv_user_photo);
+        if(user.getPhotoURL() != null) {
+            DownloadImageTask task = new DownloadImageTask(new DownloadImageResponse() {
                 @Override
-                public void onClick(View v) {
-                    if(user.isPub()) {
-                        startPrintTracksActivity();
-                    } else {
-                        startPubRegActivity();
-                    }
+                public void downloadFinished(Bitmap bitmap) {
+                    ivUserPhoto.setImageBitmap(ResourceUtil.getCircleBitmap(bitmap));
                 }
             });
+            task.execute(user.getPhotoURL().toString());
+        }
+        TextView tvUserName = leftDrawer.findViewById(R.id.tv_drawer_user);
+        tvUserName.setText(String.format("%s %s", user.getName(), user.getLastName()));
+
     }
 
     private void startPrintTracksActivity() {
@@ -116,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void loadUserPubs() {
-        if(!user.isPub()) {
+        if (!user.isPub()) {
             DbTask dbTask = new DbTask(this);
             JSONObject json = new JSONObject();
             try {
@@ -138,16 +178,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void fillMap() {
-        if(map != null && pubList.size() > 0) {
+        if (map != null && pubList.size() > 0) {
             LatLngBounds.Builder bld = new LatLngBounds.Builder();
-            for(Pub pub : pubList) {
-                map.addMarker(new MarkerOptions().position(pub.getLatLng()).title(pub.getName()));
+            for (Pub pub : pubList) {
+                map.addMarker(new MarkerOptions().position(pub.getLatLng()).title(pub.getName()).icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
                 bld.include(pub.getLatLng());
             }
             LatLngBounds bounds = bld.build();
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
         }
     }
+
+    private void requestPermissionForLocation() {
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_CONTACTS)) {
+                Toast.makeText(this, "Se necesita permiso para poder cargar tu ubicación", Toast.LENGTH_LONG).show();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_REQUEST_LOCATION);
+
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d(LOG_TAG, "LLamada a onRequestPermissionResult");
+        switch (requestCode) {
+            case PERMISSION_REQUEST_LOCATION:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    updateUserLocation();
+                    Log.d(LOG_TAG, "Intentando cargar la localización del usuario");
+                }
+                break;
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void updateUserLocation() {
+        mFusedLocationClient.getLastLocation().addOnCompleteListener(this, new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                Location location = task.getResult();
+                Log.d(LOG_TAG, "La localización del usuario se ha obtenido correctamente " + location.getLatitude() + " - " + location.getLongitude());
+                if(map != null) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()),11));
+                }
+            }
+        });
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -184,14 +270,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap map) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSION_REQUEST_LOCATION);
-            // TODO: Revisar permisos correctamente
-            return;
-        }
-        map.setMyLocationEnabled(true);
         this.map = map;
         fillMap();
     }

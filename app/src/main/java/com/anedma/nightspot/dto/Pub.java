@@ -1,8 +1,7 @@
 package com.anedma.nightspot.dto;
 
 
-import android.provider.ContactsContract;
-
+import com.anedma.nightspot.R;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
@@ -50,5 +49,29 @@ public class Pub {
 
     public String getAffinity() {
         return affinity;
+    }
+
+    public int getResourceFromAffinity() {
+        int resource = -1;
+        if(!affinity.isEmpty()) {
+            switch (affinity) {
+                case "high":
+                    resource = R.drawable.ic_map_marker_green;
+                    break;
+                case "middle-high":
+                    resource = R.drawable.ic_map_marker_lightgreen;
+                    break;
+                case "middle":
+                    resource = R.drawable.ic_map_maker_yellow;
+                    break;
+                case "low":
+                    resource = R.drawable.ic_map_marker_orange;
+                    break;
+                default:
+                    resource = R.drawable.ic_map_marker_grey;
+                    break;
+            }
+        }
+        return resource;
     }
 }

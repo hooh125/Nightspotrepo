@@ -24,6 +24,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +56,7 @@ import com.google.android.gms.tasks.Task;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -67,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int PERMISSION_REQUEST_LOCATION = 154;
     private Context context;
     private User user;
-    private Button buttonActionDrawer;
     private DrawerLayout mDrawerLayout;
     private GoogleMap map;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -121,18 +122,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mDrawerToggle.syncState();
         View leftDrawer = findViewById(R.id.include_left_drawer);
-        buttonActionDrawer = leftDrawer.findViewById(R.id.button_action_drawer);
-        buttonActionDrawer.setText((user.isPub()) ? R.string.print_tracks_button : R.string.add_pub_button);
-        buttonActionDrawer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (user.isPub()) {
-                    startPrintTracksActivity();
-                } else {
-                    startPubRegActivity();
-                }
-            }
-        });
         //Cargamos los datos del usuario y su foto en el navigation drawer
         final ImageView ivUserPhoto = leftDrawer.findViewById(R.id.iv_user_photo);
         if(user.getPhotoURL() != null) {
@@ -146,7 +135,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         TextView tvUserName = leftDrawer.findViewById(R.id.tv_drawer_user);
         tvUserName.setText(String.format("%s %s", user.getName(), user.getLastName()));
-
+        //Ahora comprobamos si el usuario es Pub o no e inflamos el drawer en función de eso
+        FrameLayout contentLayout = leftDrawer.findViewById(R.id.content_drawer);
+        View content = getLayoutInflater().inflate((user.isPub()) ? R.layout.fragment_drawer_pub : R.layout.fragment_drawer_user, null);
+        contentLayout.addView(content);
+        if(user.isPub()) {
+            Button buttonPrintTracks = content.findViewById(R.id.button_print_tracks);
+            buttonPrintTracks.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startPrintTracksActivity();
+                }
+            });
+            Button buttonEditPub = content.findViewById(R.id.button_edit_pub);
+            TextView tvPubName = content.findViewById(R.id.tv_pub_name);
+            TextView tvPubTracks = content.findViewById(R.id.tv_pub_tracks);
+        } else {
+            Button buttonAddPub = content.findViewById(R.id.button_add_pub);
+            buttonAddPub.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startPubRegActivity();
+                }
+            });
+            TextView tvUserTracks = content.findViewById(R.id.tv_user_tracks);
+            TextView tvUserPlaylists = content.findViewById(R.id.tv_user_playlists);
+        }
     }
 
     private void startPrintTracksActivity() {
@@ -234,7 +248,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -277,8 +290,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void processFinish(JSONObject jsonObject) {
         try {
-            String operacion = jsonObject.getString("operation");
-            if(operacion.equals("getUserPubs")) {
+            String operation = jsonObject.getString("operation");
+            if(operation.equals("getUserPubs")) {
                 boolean error = jsonObject.getBoolean("error");
                 String message = jsonObject.getString("message");
                 if(!error) {

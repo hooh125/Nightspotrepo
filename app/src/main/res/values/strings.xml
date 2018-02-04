@@ -29,4 +29,11 @@
     <string name="print_tracks_button">Print tracks</string>
     <string name="button_send_pub_tracks">Send</string>
     <string name="button_skip_send_tracks">Skip</string>
+    <string name="button_edit_pub">Edit</string>
+    <string name="button_print_tracks">Print tracks</string>
+    <string name="default_user">User</string>
+    <string name="label_tracks">Tracks</string>
+    <string name="label_playlists">Playlists</string>
+    <string name="label_pub_name">Name</string>
+    <string name="label_default_no_data">None</string>
 </resources>

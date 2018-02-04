@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="240dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
@@ -10,18 +10,6 @@
     android:divider="@android:color/transparent"
     android:dividerHeight="0dp">
 
-
-    <Button
-        android:id="@+id/button_action_drawer"
-        android:layout_width="170dp"
-        android:layout_height="51dp"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:text="@string/add_pub_button"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/iv_user_photo"
@@ -42,7 +30,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:text="User"
+        android:text="@string/default_user"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,13 +39,25 @@
     <View
         android:id="@+id/view"
         android:layout_width="match_parent"
-        android:alpha="0.5"
         android:layout_height="1dp"
         android:layout_marginTop="16dp"
+        android:alpha="0.5"
         android:background="@android:color/darker_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_drawer_user" />
+
+    <FrameLayout
+        android:id="@+id/content_drawer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view"
+        app:layout_constraintVertical_bias="0.0">
+
+    </FrameLayout>
 
 </android.support.constraint.ConstraintLayout>

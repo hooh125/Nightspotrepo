@@ -118,7 +118,9 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         String phone = etPhone.getText().toString();
         String address = null;
         try {
-            address = placeInfo.getString("formatted_address");
+            if(placeInfo != null) {
+                address = placeInfo.getString("formatted_address");
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

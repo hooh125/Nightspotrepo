@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -63,7 +64,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse, GoogleMap.OnMarkerClickListener {
 
     private static final String LOG_TAG = "MAINACTIVITY";
     private static final int PERMISSION_REQUEST_LOCATION = 154;
@@ -99,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        loadUserPubs();
+        loadUserPubs(false);
     }
 
     private void setupFAB() {
@@ -107,9 +108,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("FAB", "Se ha pulsado el FAB");
+                loadUserPubs(true);
             }
         });
+        fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_refresh));
     }
 
     private void setupNavigationDrawer() {
@@ -169,12 +171,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
     }
 
-    private void loadUserPubs() {
+    private void startPubRegActivity() {
+        Log.d(LOG_TAG, "Iniciando actividad para registro de Pub");
+        Intent intent = new Intent(context, PubRegActivity.class);
+        startActivity(intent);
+    }
+
+    private void loadUserPubs(boolean recalculate) {
         if (!user.isPub()) {
             DbTask dbTask = new DbTask(this);
             JSONObject json = new JSONObject();
             try {
-                json.put("operation", "getUserPubs");
+                json.put("operation", (recalculate) ? "calculateUserAffinity" : "getUserPubs");
                 json.put("email", user.getEmail());
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -185,17 +193,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void startPubRegActivity() {
-        Log.d(LOG_TAG, "Iniciando actividad para registro de Pub");
-        Intent intent = new Intent(context, PubRegActivity.class);
-        startActivity(intent);
-    }
-
     private void fillMap() {
         if (map != null && pubList.size() > 0) {
+            map.clear();
+            map.setOnMarkerClickListener(this);
             LatLngBounds.Builder bld = new LatLngBounds.Builder();
             for (Pub pub : pubList) {
-                map.addMarker(new MarkerOptions().position(pub.getLatLng()).title(pub.getName()).icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
+                Marker marker = map.addMarker(new MarkerOptions().position(pub.getLatLng())
+                        .title(pub.getName())
+                        .icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
+                marker.setTag(pub.getId());
                 bld.include(pub.getLatLng());
             }
             LatLngBounds bounds = bld.build();
@@ -291,31 +298,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void processFinish(JSONObject jsonObject) {
         try {
             String operation = jsonObject.getString("operation");
-            if(operation.equals("getUserPubs")) {
-                boolean error = jsonObject.getBoolean("error");
-                String message = jsonObject.getString("message");
-                if(!error) {
-                    JSONArray pubs = jsonObject.getJSONArray("pubs");
-                    pubList = new ArrayList<>();
-                    for(int i=0; i<pubs.length(); i++) {
-                        JSONObject jsonPub = pubs.getJSONObject(i);
-                        String name = jsonPub.getString("name");
-                        String description = jsonPub.getString("description");
-                        String phone = jsonPub.getString("phone");
-                        String lat = jsonPub.getString("lat");
-                        String lng = jsonPub.getString("lng");
-                        String affinity = jsonPub.getString("affinity");
-                        LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                        pubList.add(new Pub(name, description, position, phone, affinity));
+            boolean error = jsonObject.getBoolean("error");
+            String message = jsonObject.getString("message");
+            switch (operation) {
+                case "getUserPubs":
+                    if(!error) {
+                        JSONArray pubs = jsonObject.getJSONArray("pubs");
+                        pubList = new ArrayList<>();
+                        for(int i=0; i<pubs.length(); i++) {
+                            JSONObject jsonPub = pubs.getJSONObject(i);
+                            int idPub = jsonPub.getInt("id_pub");
+                            String name = jsonPub.getString("name");
+                            String description = jsonPub.getString("description");
+                            String phone = jsonPub.getString("phone");
+                            String lat = jsonPub.getString("lat");
+                            String lng = jsonPub.getString("lng");
+                            String affinity = jsonPub.getString("affinity");
+                            LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+                            pubList.add(new Pub(idPub, name, description, position, phone, affinity));
+                        }
+                        fillMap();
+                    } else {
+                        Log.d(LOG_TAG, message);
                     }
-                    fillMap();
-                } else {
-                    Log.d(LOG_TAG, message);
-                }
+                    break;
+                case "calculateUserAffinity":
+                    loadUserPubs(false);
+                    if(!error) Toast.makeText(this, "Se ha actualizado correctamente", Toast.LENGTH_LONG).show();
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        Log.d(LOG_TAG, "Se ha pulsado el marcador " + marker.getTag());
+        return true;
     }
 
     private class DrawerToggle extends ActionBarDrawerToggle {

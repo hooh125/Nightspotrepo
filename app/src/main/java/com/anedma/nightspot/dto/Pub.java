@@ -10,18 +10,28 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Pub {
 
+    private int id;
     private String name;
     private String description;
     private LatLng latLng;
     private String phone;
     private String affinity;
 
-    public Pub(String name, String description, LatLng latLng, String phone, String affinity) {
+    public Pub(int id, String name, String description, LatLng latLng, String phone, String affinity) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.latLng = latLng;
         this.phone = phone;
         this.affinity = affinity;
+    }
+
+    public Pub(int id, String name, String description, LatLng latLng, String phone) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.latLng = latLng;
+        this.phone = phone;
     }
 
     public Pub(String name, String description, LatLng latLng, String phone) {
@@ -73,5 +83,9 @@ public class Pub {
             }
         }
         return resource;
+    }
+
+    public int getId() {
+        return id;
     }
 }

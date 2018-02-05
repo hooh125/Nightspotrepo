@@ -73,9 +73,8 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Pub pub;
-                if((pub =checkValidPub()) != null) {
-                    sendPubOnline(pub);
+                if(checkValidPub()) {
+                    sendPubOnline(formPubFromForm());
                 }
             }
         });
@@ -111,8 +110,16 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         task.execute(json);
     }
 
+    private Pub formPubFromForm() {
+        String name = etName.getText().toString();
+        String description = etDescription.getText().toString();
+        String phone = etPhone.getText().toString();
+        LatLng latLng = position;
+        return new Pub(name, description, latLng, phone);
+    }
+
     @Nullable
-    private Pub checkValidPub() {
+    private boolean checkValidPub() {
         String name = etName.getText().toString();
         String description = etDescription.getText().toString();
         String phone = etPhone.getText().toString();
@@ -127,9 +134,9 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         LatLng latLng = position;
         if(name.isEmpty() || description.isEmpty() || phone.isEmpty() || latLng == null) {
             Toast.makeText(this, "Te falta rellenar algún campo", Toast.LENGTH_SHORT).show();
-            return null;
+            return false;
         }
-        return new Pub(name, description, latLng, phone);
+        return true;
     }
 
     @Override

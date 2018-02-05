@@ -36,4 +36,8 @@
     <string name="label_playlists">Playlists</string>
     <string name="label_pub_name">Name</string>
     <string name="label_default_no_data">None</string>
+    <string name="pub_name_default">Pub</string>
+    <string name="button_go_gmaps">Go</string>
+    <string name="button_more_info">Info</string>
+    <string name="tv_default_affinity">None</string>
 </resources>

@@ -19,6 +19,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -62,6 +63,7 @@ import org.w3c.dom.Text;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse, GoogleMap.OnMarkerClickListener {
@@ -74,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap map;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar mToolbar;
-    private ArrayList<Pub> pubList = new ArrayList<>();
+    private HashMap<Integer, Pub> pubList = new HashMap<>();
     private FloatingActionButton fab;
     private FusedLocationProviderClient mFusedLocationClient;
 
@@ -198,7 +200,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             map.clear();
             map.setOnMarkerClickListener(this);
             LatLngBounds.Builder bld = new LatLngBounds.Builder();
-            for (Pub pub : pubList) {
+            for (Integer pubId: pubList.keySet()) {
+                Pub pub = pubList.get(pubId);
                 Marker marker = map.addMarker(new MarkerOptions().position(pub.getLatLng())
                         .title(pub.getName())
                         .icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
@@ -207,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             LatLngBounds bounds = bld.build();
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
+            MarkerPubInfo adapter = new MarkerPubInfo();
+            map.setInfoWindowAdapter(adapter);
         }
     }
 
@@ -304,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 case "getUserPubs":
                     if(!error) {
                         JSONArray pubs = jsonObject.getJSONArray("pubs");
-                        pubList = new ArrayList<>();
+                        pubList = new HashMap<>();
                         for(int i=0; i<pubs.length(); i++) {
                             JSONObject jsonPub = pubs.getJSONObject(i);
                             int idPub = jsonPub.getInt("id_pub");
@@ -315,7 +320,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             String lng = jsonPub.getString("lng");
                             String affinity = jsonPub.getString("affinity");
                             LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                            pubList.add(new Pub(idPub, name, description, position, phone, affinity));
+                            pubList.put(idPub, new Pub(idPub, name, description, position, phone, affinity));
                         }
                         fillMap();
                     } else {
@@ -335,6 +340,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.d(LOG_TAG, "Se ha pulsado el marcador " + marker.getTag());
+        marker.showInfoWindow();
         return true;
     }
 
@@ -361,6 +367,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (fab != null)
                 fab.setTranslationX(slideOffset * 250);
             super.onDrawerSlide(drawerView, slideOffset);
+        }
+    }
+
+    private class MarkerPubInfo implements GoogleMap.InfoWindowAdapter {
+
+        @Override
+        public View getInfoWindow(Marker marker) {
+            Integer pubId = (Integer) marker.getTag();
+            return (pubId != null) ? fillInfoPubWindow(pubId) : null;
+        }
+
+        @Override
+        public View getInfoContents(Marker marker) {
+            Integer pubId = (Integer) marker.getTag();
+            return (pubId != null) ? fillInfoPubWindow(pubId) : null;
+        }
+
+        private View fillInfoPubWindow(int pubId) {
+            Pub pub = pubList.get(pubId);
+            View view = getLayoutInflater().inflate(R.layout.pub_info_window, null);
+            if(pub != null) {
+                TextView tvPubName = view.findViewById(R.id.tv_pub_name_info);
+                TextView tvAffinity = view.findViewById(R.id.tv_affinity);
+                Button buttonGoMaps = view.findViewById(R.id.button_go_maps);
+                Button buttonInfo = view.findViewById(R.id.button_pub_info);
+                tvPubName.setText(pub.getName());
+                if(pub.getAffinity() != null) tvAffinity.setText(pub.getAffinity());
+            }
+            return view;
         }
     }
 }

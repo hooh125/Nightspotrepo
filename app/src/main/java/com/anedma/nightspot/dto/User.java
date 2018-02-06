@@ -66,10 +66,12 @@ public class User {
     }
 
     public URL getPhotoURL() {
-        try {
-            return new URL(photoUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+        if(photoUri != null) {
+            try {
+                return new URL(photoUri.toString());
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }

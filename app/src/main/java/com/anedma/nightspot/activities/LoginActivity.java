@@ -6,17 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageButton;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.SpotifyApiController;
 import com.anedma.nightspot.async.AsyncResponse;
 import com.anedma.nightspot.async.DbTask;
-import com.anedma.nightspot.database.DbHelper;
 import com.anedma.nightspot.dto.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -31,8 +29,6 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener, AsyncResponse {
 
     private static final String LOG_TAG = "LOGINACTIVITY";
@@ -41,8 +37,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final String SPOTIFY_CLIENT_ID = "d075f2e5efcc4be6b5cb879a49950de5";
     private static final String REDIRECT_SPOTIFY_URI = "nightspot://callback";
     private static final String[] SCOPES = {"playlist-read-private", "playlist-read-collaborative", "user-follow-read", "user-library-read", "user-top-read", "user-read-email", "playlist-read-collaborative"};
-    private ImageButton loginGoogleButton;
-    private ImageButton loginSpotifyButton;
+    private Button loginGoogleButton;
+    private Button loginSpotifyButton;
     private static boolean loginGoogle = false;
     private static boolean loginSpotify = false;
     private static boolean isPub = false;

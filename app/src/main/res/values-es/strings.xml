@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NightSpot</string>
+    <string name="common_spotify_signin_button_text_long">Iniciar sesión con Spotify</string>
+    <string name="cd_google_signin_button">Iniciar sesión con Google</string>
+    <string name="cd_spotify_signin_button">Iniciar sesión con Spotify</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="action_search">Buscar</string>
+    <string name="nav_item_home">Inicio</string>
+    <string name="title_messages">Mensajes</string>
+    <string name="title_friends">Amigos</string>
+    <string name="title_home">Inicio</string>
+    <string name="status_started">En servicio</string>
+    <string name="status_stopped">Detenido</string>
+    <string name="settings">Ajustes</string>
+    <string name="drawer_open">Abrir</string>
+    <string name="drawer_close">Cerrar</string>
+    <string name="title_activity_login">Iniciar sesión</string>
+    <string name="username">Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="loading_content">Obteniendo música</string>
+    <string name="tv_loading_content">Cargando tu librería de música</string>
+    <string name="hint_name">Nombre</string>
+    <string name="hint_description">Descripción</string>
+    <string name="hint_phone">Teléfono</string>
+    <string name="pub_register_button">Registrar</string>
+    <string name="add_pub_button">Añadir nuevo Pub</string>
+    <string name="print_tracks_button">Registrar música</string>
+    <string name="button_send_pub_tracks">Enviar</string>
+    <string name="button_skip_send_tracks">Saltar</string>
+    <string name="button_edit_pub">Editar</string>
+    <string name="button_print_tracks">Registrar música</string>
+    <string name="default_user">Usuario</string>
+    <string name="label_tracks">Canciones</string>
+    <string name="label_playlists">Listas</string>
+    <string name="label_pub_name">Nombre</string>
+    <string name="label_default_no_data">Ninguno</string>
+    <string name="button_go_gmaps">Ir</string>
+    <string name="tv_default_affinity">Ninguna</string>
+</resources>

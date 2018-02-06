@@ -16,6 +16,16 @@ public class Pub {
     private LatLng latLng;
     private String phone;
     private String affinity;
+    private int tracks;
+
+    public Pub(int id, String name, String description, LatLng latLng, String phone, int tracks) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.latLng = latLng;
+        this.phone = phone;
+        this.tracks = tracks;
+    }
 
     public Pub(int id, String name, String description, LatLng latLng, String phone, String affinity) {
         this.id = id;
@@ -59,6 +69,10 @@ public class Pub {
 
     public String getAffinity() {
         return affinity;
+    }
+
+    public int getTracks() {
+        return tracks;
     }
 
     public int getResourceFromAffinity() {

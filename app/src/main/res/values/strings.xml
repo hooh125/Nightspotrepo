@@ -19,8 +19,8 @@
     <string name="password">Password</string>
     <string name="loading_content">Getting tracks</string>
     <string name="tv_loading_content">Loading your music library</string>
-    <string name="cd_google_signin_button">Login with Google Account</string>
-    <string name="cd_spotify_signin_button">Login with Spotify Account</string>
+    <string name="cd_google_signin_button">Login with Google</string>
+    <string name="cd_spotify_signin_button">Login with Spotify</string>
     <string name="hint_name">Name</string>
     <string name="hint_description">Description</string>
     <string name="hint_phone">Phone</string>
@@ -36,8 +36,9 @@
     <string name="label_playlists">Playlists</string>
     <string name="label_pub_name">Name</string>
     <string name="label_default_no_data">None</string>
-    <string name="pub_name_default">Pub</string>
+    <string name="pub_name_default" translatable="false">Pub</string>
     <string name="button_go_gmaps">Go</string>
-    <string name="button_more_info">Info</string>
+    <string name="button_more_info" translatable="false">Info</string>
     <string name="tv_default_affinity">None</string>
+    <string name="common_spotify_signin_button_text_long">Sign in with Spotify</string>
 </resources>

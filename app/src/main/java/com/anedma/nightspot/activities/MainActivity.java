@@ -65,13 +65,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse, GoogleMap.OnMarkerClickListener {
 
     private static final String LOG_TAG = "MAINACTIVITY";
     private static final int PERMISSION_REQUEST_LOCATION = 154;
     private Context context;
     private User user;
+    private Pub pub;
     private DrawerLayout mDrawerLayout;
     private GoogleMap map;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -79,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private HashMap<Integer, Pub> pubList = new HashMap<>();
     private FloatingActionButton fab;
     private FusedLocationProviderClient mFusedLocationClient;
+    private TextView tvPubName;
+    private TextView tvPubTracks;
+    private TextView tvUserTracks;
+    private TextView tvUserPlaylists;
 
 
     @Override
@@ -152,8 +156,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
             Button buttonEditPub = content.findViewById(R.id.button_edit_pub);
-            TextView tvPubName = content.findViewById(R.id.tv_pub_name);
-            TextView tvPubTracks = content.findViewById(R.id.tv_pub_tracks);
+            tvPubName = content.findViewById(R.id.tv_pub_name);
+            tvPubTracks = content.findViewById(R.id.tv_pub_tracks);
         } else {
             Button buttonAddPub = content.findViewById(R.id.button_add_pub);
             buttonAddPub.setOnClickListener(new View.OnClickListener() {
@@ -162,8 +166,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     startPubRegActivity();
                 }
             });
-            TextView tvUserTracks = content.findViewById(R.id.tv_user_tracks);
-            TextView tvUserPlaylists = content.findViewById(R.id.tv_user_playlists);
+            tvUserTracks = content.findViewById(R.id.tv_user_tracks);
+            tvUserPlaylists = content.findViewById(R.id.tv_user_playlists);
         }
     }
 
@@ -180,18 +184,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void loadUserPubs(boolean recalculate) {
-        if (!user.isPub()) {
-            DbTask dbTask = new DbTask(this);
-            JSONObject json = new JSONObject();
-            try {
+        DbTask dbTask = new DbTask(this);
+        JSONObject json = new JSONObject();
+        try {
+            if (!user.isPub()) {
                 json.put("operation", (recalculate) ? "calculateUserAffinity" : "getUserPubs");
-                json.put("email", user.getEmail());
-            } catch (JSONException e) {
-                e.printStackTrace();
+            } else {
+                json.put("operation","getUserPub");
             }
-            dbTask.execute(json);
-        } else {
-            Log.d(LOG_TAG, "El usuario es un Pub, no cargará nada en el mapa");
+            json.put("email", user.getEmail());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        dbTask.execute(json);
+    }
+
+    private void loadPubDataIntoNavigationDrawer() {
+        if(pub != null) {
+            tvPubName.setText(pub.getName());
+            tvPubTracks.setText(String.valueOf(pub.getTracks()));
         }
     }
 
@@ -330,6 +341,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 case "calculateUserAffinity":
                     loadUserPubs(false);
                     if(!error) Toast.makeText(this, "Se ha actualizado correctamente", Toast.LENGTH_LONG).show();
+                    break;
+                case "getUserPub":
+                    if(!error) {
+                        JSONObject jsonPub = jsonObject.getJSONObject("pub");
+                        int pubId = Integer.parseInt(jsonPub.getString("id"));
+                        String name = jsonPub.getString("name");
+                        String description = jsonPub.getString("description");
+                        String phone = jsonPub.getString("phone");
+                        String lat = jsonPub.getString("lat");
+                        String lng = jsonPub.getString("lng");
+                        LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+                        int tracks = Integer.parseInt(jsonPub.getString("tracks"));
+                        pub = new Pub(pubId, name, description, position, phone, tracks);
+                        Log.d(LOG_TAG, "El pub se ha cargado correctamente, intentando rellenar controles");
+                        loadPubDataIntoNavigationDrawer();
+                    }
                     break;
             }
         } catch (JSONException e) {

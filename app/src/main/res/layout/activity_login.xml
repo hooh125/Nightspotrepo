@@ -29,17 +29,34 @@
             android:layout_height="30dp" />
     </LinearLayout>
 
-    <ImageButton
+    <Button
         android:id="@+id/googleSignInButton"
         android:contentDescription="@string/cd_google_signin_button"
+        android:text="@string/common_signin_button_text_long"
         android:layout_width="match_parent"
         android:layout_height="75dp"
-        android:src="@color/colorPrimary" />
-    <ImageButton
+        android:layout_gravity="center_horizontal"
+        android:textSize="13sp"
+        android:textColor="@color/googleSignInText"
+        android:paddingStart="60dp"
+        android:paddingEnd="60dp"
+        android:background="@android:color/white"
+        android:drawablePadding="10dp"
+        android:drawableStart="@drawable/gbuttonsmall" />
+    <Button
         android:id="@+id/spotifySignInButton"
         android:contentDescription="@string/cd_spotify_signin_button"
+        android:text="@string/common_spotify_signin_button_text_long"
         android:layout_width="match_parent"
         android:layout_height="75dp"
-        android:src="@color/colorAccent" />
+        android:layout_gravity="center_horizontal"
+        android:drawablePadding="20dp"
+        android:textSize="13sp"
+        android:textColor="@android:color/white"
+        android:paddingStart="60dp"
+        android:paddingEnd="60dp"
+        android:drawableStart="@drawable/spotifysmall"
+        android:background="@color/spotifyBlack"
+        />
 
 </LinearLayout>

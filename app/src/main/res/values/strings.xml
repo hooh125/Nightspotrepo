@@ -39,6 +39,18 @@
     <string name="pub_name_default" translatable="false">Pub</string>
     <string name="button_go_gmaps">Go</string>
     <string name="button_more_info" translatable="false">Info</string>
+    <string name="button_call_pub">Call</string>
     <string name="tv_default_affinity">None</string>
     <string name="common_spotify_signin_button_text_long">Sign in with Spotify</string>
+    <string name="label_pub_description">Description</string>
+    <string name="label_pub_address">Address</string>
+    <string name="label_pub_phone">Phone</string>
+    <string name="label_pub_tracks">Tracks</string>
+    <string name="label_pub_affinity">Affinity</string>
+    <string name="affinity_none">None</string>
+    <string name="affinity_low">Low</string>
+    <string name="affinity_middle">Middle</string>
+    <string name="affinity_middlehigh">Mid-high</string>
+    <string name="affinity_high">High</string>
+    <string name="warning_must_have_gmaps">You need to install Google Maps</string>
 </resources>

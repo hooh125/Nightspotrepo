@@ -7,6 +7,14 @@
     android:gravity="bottom"
     android:layout_height="match_parent"
     tools:context="com.anedma.nightspot.activities.LoginActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:background="@drawable/login_bg"
+        android:layout_gravity="top"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:id="@+id/layoutLoadingLibrary"
         android:layout_width="match_parent"
@@ -30,20 +38,6 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/googleSignInButton"
-        android:contentDescription="@string/cd_google_signin_button"
-        android:text="@string/common_signin_button_text_long"
-        android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:layout_gravity="center_horizontal"
-        android:textSize="13sp"
-        android:textColor="@color/googleSignInText"
-        android:paddingStart="60dp"
-        android:paddingEnd="60dp"
-        android:background="@android:color/white"
-        android:drawablePadding="10dp"
-        android:drawableStart="@drawable/gbuttonsmall" />
-    <Button
         android:id="@+id/spotifySignInButton"
         android:contentDescription="@string/cd_spotify_signin_button"
         android:text="@string/common_spotify_signin_button_text_long"
@@ -58,5 +52,20 @@
         android:drawableStart="@drawable/spotifysmall"
         android:background="@color/spotifyBlack"
         />
+
+    <Button
+        android:id="@+id/googleSignInButton"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/white"
+        android:contentDescription="@string/cd_google_signin_button"
+        android:drawablePadding="10dp"
+        android:drawableStart="@drawable/gbuttonsmall"
+        android:paddingEnd="60dp"
+        android:paddingStart="60dp"
+        android:text="@string/common_signin_button_text_long"
+        android:textColor="@color/googleSignInText"
+        android:textSize="13sp" />
 
 </LinearLayout>

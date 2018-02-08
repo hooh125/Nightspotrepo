@@ -19,7 +19,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,6 +30,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.anedma.nightspot.DownloadImageTask;
+import com.anedma.nightspot.PubInfoDialog;
 import com.anedma.nightspot.R;
 import com.anedma.nightspot.ResourceUtil;
 import com.anedma.nightspot.async.AsyncResponse;
@@ -38,7 +38,6 @@ import com.anedma.nightspot.async.DbTask;
 import com.anedma.nightspot.async.DownloadImageResponse;
 import com.anedma.nightspot.dto.Pub;
 import com.anedma.nightspot.dto.User;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -46,23 +45,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, AsyncResponse, GoogleMap.OnMarkerClickListener {
@@ -82,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView tvPubName;
     private TextView tvPubTracks;
     private TextView tvUserTracks;
-    private TextView tvUserPlaylists;
 
 
     @Override
@@ -107,6 +99,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         loadUserPubs(false);
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        DbTask dbTask = new DbTask(this);
+        JSONObject json = new JSONObject();
+        try {
+            json.put("operation", "getUser");
+            json.put("email", user.getEmail());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        dbTask.execute(json);
     }
 
     private void setupFAB() {
@@ -132,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         View leftDrawer = findViewById(R.id.include_left_drawer);
         //Cargamos los datos del usuario y su foto en el navigation drawer
         final ImageView ivUserPhoto = leftDrawer.findViewById(R.id.iv_user_photo);
-        if(user.getPhotoURL() != null) {
+        if (user.getPhotoURL() != null) {
             DownloadImageTask task = new DownloadImageTask(new DownloadImageResponse() {
                 @Override
                 public void downloadFinished(Bitmap bitmap) {
@@ -147,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         FrameLayout contentLayout = leftDrawer.findViewById(R.id.content_drawer);
         View content = getLayoutInflater().inflate((user.isPub()) ? R.layout.fragment_drawer_pub : R.layout.fragment_drawer_user, null);
         contentLayout.addView(content);
-        if(user.isPub()) {
+        if (user.isPub()) {
             Button buttonPrintTracks = content.findViewById(R.id.button_print_tracks);
             buttonPrintTracks.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -167,7 +172,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
             tvUserTracks = content.findViewById(R.id.tv_user_tracks);
-            tvUserPlaylists = content.findViewById(R.id.tv_user_playlists);
         }
     }
 
@@ -190,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (!user.isPub()) {
                 json.put("operation", (recalculate) ? "calculateUserAffinity" : "getUserPubs");
             } else {
-                json.put("operation","getUserPub");
+                json.put("operation", "getUserPub");
             }
             json.put("email", user.getEmail());
         } catch (JSONException e) {
@@ -199,10 +203,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dbTask.execute(json);
     }
 
-    private void loadPubDataIntoNavigationDrawer() {
-        if(pub != null) {
-            tvPubName.setText(pub.getName());
-            tvPubTracks.setText(String.valueOf(pub.getTracks()));
+    private void loadDataIntoNavigationDrawer() {
+        if (user.isPub()) {
+            if (pub != null) {
+                tvPubName.setText(pub.getName());
+                tvPubTracks.setText(String.valueOf(pub.getTracks()));
+            }
+        } else {
+            tvUserTracks.setText(String.valueOf(user.getTracks()));
         }
     }
 
@@ -211,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             map.clear();
             map.setOnMarkerClickListener(this);
             LatLngBounds.Builder bld = new LatLngBounds.Builder();
-            for (Integer pubId: pubList.keySet()) {
+            for (Integer pubId : pubList.keySet()) {
                 Pub pub = pubList.get(pubId);
                 Marker marker = map.addMarker(new MarkerOptions().position(pub.getLatLng())
                         .title(pub.getName())
@@ -222,6 +230,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLngBounds bounds = bld.build();
             map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
             MarkerPubInfo adapter = new MarkerPubInfo();
+            map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                @Override
+                public void onInfoWindowClick(Marker marker) {
+                    Integer pubId = (Integer) marker.getTag();
+                    Pub pub = pubList.get(pubId);
+                    PubInfoDialog pubInfoDialog = PubInfoDialog.newInstance(pub);
+                    pubInfoDialog.show(getSupportFragmentManager(), "pubinfodialog" + marker.getTag());
+                }
+            });
             map.setInfoWindowAdapter(adapter);
         }
     }
@@ -264,8 +281,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onComplete(@NonNull Task<Location> task) {
                 Location location = task.getResult();
                 Log.d(LOG_TAG, "La localización del usuario se ha obtenido correctamente " + location.getLatitude() + " - " + location.getLongitude());
-                if(map != null) {
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()),11));
+                if (map != null) {
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 11));
                 }
             }
         });
@@ -316,34 +333,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             String operation = jsonObject.getString("operation");
             boolean error = jsonObject.getBoolean("error");
             String message = jsonObject.getString("message");
-            switch (operation) {
-                case "getUserPubs":
-                    if(!error) {
+            if (!error) {
+                switch (operation) {
+                    case "getUserPubs":
                         JSONArray pubs = jsonObject.getJSONArray("pubs");
                         pubList = new HashMap<>();
-                        for(int i=0; i<pubs.length(); i++) {
+                        for (int i = 0; i < pubs.length(); i++) {
                             JSONObject jsonPub = pubs.getJSONObject(i);
                             int idPub = jsonPub.getInt("id_pub");
                             String name = jsonPub.getString("name");
                             String description = jsonPub.getString("description");
+                            String address = jsonPub.getString("address");
                             String phone = jsonPub.getString("phone");
                             String lat = jsonPub.getString("lat");
                             String lng = jsonPub.getString("lng");
                             String affinity = jsonPub.getString("affinity");
+                            int tracks = jsonPub.getInt("tracks");
                             LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                            pubList.put(idPub, new Pub(idPub, name, description, position, phone, affinity));
+                            pubList.put(idPub, new Pub(idPub, name, description, address, position, phone, affinity, tracks));
                         }
                         fillMap();
-                    } else {
-                        Log.d(LOG_TAG, message);
-                    }
-                    break;
-                case "calculateUserAffinity":
-                    loadUserPubs(false);
-                    if(!error) Toast.makeText(this, "Se ha actualizado correctamente", Toast.LENGTH_LONG).show();
-                    break;
-                case "getUserPub":
-                    if(!error) {
+                        break;
+                    case "calculateUserAffinity":
+                        loadUserPubs(false);
+                        Toast.makeText(this, "Se ha actualizado correctamente", Toast.LENGTH_LONG).show();
+                        break;
+                    case "getUserPub":
                         JSONObject jsonPub = jsonObject.getJSONObject("pub");
                         int pubId = Integer.parseInt(jsonPub.getString("id"));
                         String name = jsonPub.getString("name");
@@ -355,9 +370,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         int tracks = Integer.parseInt(jsonPub.getString("tracks"));
                         pub = new Pub(pubId, name, description, position, phone, tracks);
                         Log.d(LOG_TAG, "El pub se ha cargado correctamente, intentando rellenar controles");
-                        loadPubDataIntoNavigationDrawer();
-                    }
-                    break;
+                        loadDataIntoNavigationDrawer();
+                        break;
+                    case "getUser":
+                        Log.d(LOG_TAG, "Se han recogido los datos del usuario, intentando actualziar controles");
+                        JSONObject userJson = jsonObject.getJSONObject("user");
+                        int userTracks = Integer.parseInt(userJson.getString("tracks"));
+                        User user = User.getInstance();
+                        user.setTracks(userTracks);
+                        loadDataIntoNavigationDrawer();
+                        break;
+                }
+            } else {
+                Log.d(LOG_TAG, "Ha habido un error " + message);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -414,13 +439,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         private View fillInfoPubWindow(int pubId) {
             Pub pub = pubList.get(pubId);
             View view = getLayoutInflater().inflate(R.layout.pub_info_window, null);
-            if(pub != null) {
+            if (pub != null) {
                 TextView tvPubName = view.findViewById(R.id.tv_pub_name_info);
                 TextView tvAffinity = view.findViewById(R.id.tv_affinity);
-                Button buttonGoMaps = view.findViewById(R.id.button_go_maps);
-                Button buttonInfo = view.findViewById(R.id.button_pub_info);
                 tvPubName.setText(pub.getName());
-                if(pub.getAffinity() != null) tvAffinity.setText(pub.getAffinity());
+                if (pub.getAffinity() != null) tvAffinity.setText(pub.getAffinity());
             }
             return view;
         }

@@ -13,6 +13,7 @@ public class Pub {
     private int id;
     private String name;
     private String description;
+    private String address;
     private LatLng latLng;
     private String phone;
     private String affinity;
@@ -27,6 +28,14 @@ public class Pub {
         this.tracks = tracks;
     }
 
+    public Pub(String name, String description, String address, LatLng latLng, String phone) {
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.latLng = latLng;
+        this.phone = phone;
+    }
+
     public Pub(int id, String name, String description, LatLng latLng, String phone, String affinity) {
         this.id = id;
         this.name = name;
@@ -34,6 +43,17 @@ public class Pub {
         this.latLng = latLng;
         this.phone = phone;
         this.affinity = affinity;
+    }
+
+    public Pub(int id, String name, String description, String address, LatLng latLng, String phone, String affinity, int tracks) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.latLng = latLng;
+        this.phone = phone;
+        this.affinity = affinity;
+        this.tracks = tracks;
     }
 
     public Pub(int id, String name, String description, LatLng latLng, String phone) {
@@ -69,6 +89,10 @@ public class Pub {
 
     public String getAffinity() {
         return affinity;
+    }
+
+    public String getAddress() {
+        return address;
     }
 
     public int getTracks() {

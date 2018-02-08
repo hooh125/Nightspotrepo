@@ -50,6 +50,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
     private EditText etDescription;
     private EditText etPhone;
     private LatLng position;
+    private String address;
     private JSONObject placeInfo;
     private Button buttonSend;
     private AutoCompleteTextView autoCompleteTextView;
@@ -74,7 +75,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             @Override
             public void onClick(View v) {
                 if(checkValidPub()) {
-                    sendPubOnline(formPubFromForm());
+                    sendPubOnline(createPubFromForm());
                 }
             }
         });
@@ -86,7 +87,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
 
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map_pub_reg);
+                .findFragmentById(R.id.map_pub_info);
         mapFragment.getMapAsync(this);
     }
 
@@ -102,6 +103,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             json.put("phone", pub.getPhone());
             json.put("lat", pub.getLatLng().latitude);
             json.put("lng", pub.getLatLng().longitude);
+            json.put("address", pub.getAddress());
             json.put("email", user.getEmail());
             Log.d(LOG_TAG, json.toString());
         } catch (JSONException e) {
@@ -110,12 +112,13 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         task.execute(json);
     }
 
-    private Pub formPubFromForm() {
+    private Pub createPubFromForm() {
         String name = etName.getText().toString();
         String description = etDescription.getText().toString();
         String phone = etPhone.getText().toString();
+        String mAddress = address;
         LatLng latLng = position;
-        return new Pub(name, description, latLng, phone);
+        return new Pub(name, description, mAddress, latLng, phone);
     }
 
     @Nullable
@@ -132,7 +135,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             e.printStackTrace();
         }
         LatLng latLng = position;
-        if(name.isEmpty() || description.isEmpty() || phone.isEmpty() || latLng == null) {
+        if(name.isEmpty() || description.isEmpty() || phone.isEmpty() || latLng == null || address != null) {
             Toast.makeText(this, "Te falta rellenar algún campo", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -151,6 +154,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             JSONObject latlngJson = info.getJSONObject("geometry").getJSONObject("location");
             hideKeyboard(this);
             position = new LatLng(latlngJson.getDouble("lat"), latlngJson.getDouble("lng"));
+            address = placeInfo.getString("formatted_address");
             placeInfo = info;
             if(map != null) {
                 map.addMarker(new MarkerOptions().position(position));

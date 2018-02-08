@@ -15,6 +15,7 @@ public class User {
     private static String name;
     private static String lastName;
     private static String email;
+    private static int tracks;
     private static boolean isPub;
     private static Uri photoUri;
 
@@ -47,6 +48,14 @@ public class User {
 
     public void setPub(boolean isPub) {
         User.isPub = isPub;
+    }
+
+    public void setTracks(int tracks) {
+        User.tracks = tracks;
+    }
+
+    public int getTracks() {
+        return tracks;
     }
 
     public boolean isPub() {

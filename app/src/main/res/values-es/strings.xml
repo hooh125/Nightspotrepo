@@ -37,4 +37,16 @@
     <string name="label_default_no_data">Ninguno</string>
     <string name="button_go_gmaps">Ir</string>
     <string name="tv_default_affinity">Ninguna</string>
+    <string name="label_pub_description">Descripción</string>
+    <string name="label_pub_address">Dirección</string>
+    <string name="label_pub_tracks">Canciones</string>
+    <string name="label_pub_affinity">Afinidad</string>
+    <string name="button_call_pub">Llamar</string>
+    <string name="label_pub_phone">Teléfono</string>
+    <string name="affinity_none">Ninguna</string>
+    <string name="affinity_low">Baja</string>
+    <string name="affinity_middle">Media</string>
+    <string name="affinity_middlehigh">Media-alta</string>
+    <string name="affinity_high">Alta</string>
+    <string name="warning_must_have_gmaps">Necesitas instalar Google Maps</string>
 </resources>

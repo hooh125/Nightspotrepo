@@ -11,47 +11,49 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:background="@drawable/login_bg"
+        android:layout_height="match_parent"
         android:layout_gravity="top"
-        android:layout_height="wrap_content" />
+        android:background="@drawable/login_bg" />
 
     <LinearLayout
-        android:id="@+id/layoutLoadingLibrary"
+        android:id="@+id/layout_loading_library"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_gravity="top"
-        android:visibility="gone"
         android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
+
         <android.support.v7.widget.AppCompatTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/tv_loading_content"/>
-        <ProgressBar
-            style="?android:attr/progressBarStyleHorizontal"
-            android:id="@+id/pbLoadTracks"
-            android:layout_gravity="bottom"
-            android:visibility="visible"
-            android:progress="0"
             android:layout_width="match_parent"
-            android:layout_height="30dp" />
+            android:layout_height="wrap_content"
+            android:text="@string/tv_loading_content"
+            android:textAlignment="center" />
+
+        <ProgressBar
+            android:id="@+id/pb_load_tracks"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:progress="0"
+            android:visibility="visible" />
     </LinearLayout>
 
     <Button
         android:id="@+id/spotifySignInButton"
-        android:contentDescription="@string/cd_spotify_signin_button"
-        android:text="@string/common_spotify_signin_button_text_long"
         android:layout_width="match_parent"
         android:layout_height="75dp"
         android:layout_gravity="center_horizontal"
-        android:drawablePadding="20dp"
-        android:textSize="13sp"
-        android:textColor="@android:color/white"
-        android:paddingStart="60dp"
-        android:paddingEnd="60dp"
-        android:drawableStart="@drawable/spotifysmall"
         android:background="@color/spotifyBlack"
-        />
+        android:contentDescription="@string/cd_spotify_signin_button"
+        android:drawablePadding="20dp"
+        android:drawableStart="@drawable/spotifysmall"
+        android:paddingEnd="60dp"
+        android:paddingStart="60dp"
+        android:text="@string/common_spotify_signin_button_text_long"
+        android:textColor="@android:color/white"
+        android:textSize="13sp" />
 
     <Button
         android:id="@+id/googleSignInButton"

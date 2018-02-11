@@ -12,9 +12,10 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.anedma.nightspot.R;
-import com.anedma.nightspot.SpotifyApiController;
-import com.anedma.nightspot.async.AsyncResponse;
-import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.async.ApiController;
+import com.anedma.nightspot.async.SpotifyApiController;
+import com.anedma.nightspot.async.response.LoginResponse;
+import com.anedma.nightspot.async.response.SpotifyResponse;
 import com.anedma.nightspot.dto.User;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -26,10 +27,7 @@ import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener, AsyncResponse {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener, LoginResponse, SpotifyResponse {
 
     private static final String LOG_TAG = "LOGINACTIVITY";
     private static final int REQUESTCODE_GOOGLE_SIGNIN = 123; //Este es el código de vuelta que usara la API para saber que el usuario ha conseguido loguearse.
@@ -48,11 +46,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private GoogleSignInClient mGoogleSignIn;
     private AuthenticationRequest.Builder builder;
     private SpotifyApiController controller;
+    private ApiController apiController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        apiController = ApiController.getInstance();
+        apiController.setDelegate(this);
         setupUI();
 
         //Google Login
@@ -94,6 +95,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         AuthenticationClient.stopLoginActivity(this, REQUESTCODE_SPOTIFY_SIGNIN);
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.googleSignInButton:
+                loginWithGoogle();
+                break;
+            case R.id.spotifySignInButton:
+                loginWithSpotify();
+                break;
+            default:
+                break;
+        }
+    }
+
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             account = completedTask.getResult(ApiException.class);
@@ -114,7 +129,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.d(LOG_TAG, "LOGIN DE SPOTIFY SATISFACTORIO");
                 String accessToken = response.getAccessToken();
                 Log.d(LOG_TAG, "ACCESS TOKEN SPOTIFY: " + accessToken);
-                controller = new SpotifyApiController(accessToken, this);
+                controller = SpotifyApiController.getInstance();
+                controller.setAccessToken(accessToken);
                 loginSpotifyButton.setEnabled(false);
                 loginSpotify = true;
                 checkLoginStatus();
@@ -136,32 +152,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void sendGoogleSignInRequest() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("operation", "insertUser");
-            json.put("name", account.getGivenName());
-            json.put("lastName", account.getFamilyName());
-            json.put("email", account.getEmail());
-            Log.d(LOG_TAG, json.toString());
-            DbTask dbTask = new DbTask(this);
-            dbTask.execute(json);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.googleSignInButton:
-                loginWithGoogle();
-                break;
-            case R.id.spotifySignInButton:
-                loginWIthSpotify();
-                break;
-            default:
-                    break;
-        }
+        apiController.requestLogin(account.getGivenName(), account.getFamilyName(), account.getEmail());
     }
 
     private void loginWithGoogle() {
@@ -169,7 +160,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         startActivityForResult(signInIntent, REQUESTCODE_GOOGLE_SIGNIN);
     }
 
-    private void loginWIthSpotify() {
+    private void loginWithSpotify() {
         AuthenticationRequest request = builder.build();
         AuthenticationClient.openLoginActivity(this, REQUESTCODE_SPOTIFY_SIGNIN, request);
     }
@@ -180,11 +171,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(loginGoogle && (loginSpotify || isPub)) {
             if(requestSpotifyData) {
                 Log.d("LOGINACTIVITY", "Intentando recoger librería del usuario");
+                controller.setRequestUpdate();
                 controller.getUserData();
                 if(progressBar == null) {
-                    LinearLayout layoutLoadingLibrary = findViewById(R.id.layoutLoadingLibrary);
+                    LinearLayout layoutLoadingLibrary = findViewById(R.id.layout_loading_library);
                     layoutLoadingLibrary.setVisibility(View.VISIBLE);
-                    progressBar = findViewById(R.id.pbLoadTracks);
+                    progressBar = findViewById(R.id.pb_load_tracks);
                     //Bloquamos la interacción del usuario con la interfaz
                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
@@ -200,6 +192,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    public void loginResponse(boolean alreadyRegistered, boolean isPub) {
+        User user = User.getInstance();
+        user.setEmail(account.getEmail());
+        user.setName(account.getGivenName());
+        user.setLastName(account.getFamilyName());
+        user.setPub(isPub);
+        user.setPhotoUri(account.getPhotoUrl());
+        requestSpotifyData = !alreadyRegistered && !isPub;
+        loginGoogle = true;
+        checkLoginStatus();
+        Log.d("GOOGLE", "LOGIN SATISFACTORIO");
+    }
+
+    @Override
+    public void requestInsertTracksResponse() {
+        requestSpotifyData = false;
+        LinearLayout progressBarLayout = findViewById(R.id.layout_loading_library);
+        progressBarLayout.setVisibility(View.GONE);
+        checkLoginStatus();
+    }
+
+    @Override
+    public void insertTracksProgressUpdate(int totalTracks, int tracksRemaining) {
+        if(progressBar != null) {
+            progressBar.setMax(totalTracks);
+            progressBar.setProgress(totalTracks - tracksRemaining);
+        }
+    }
+
+    @Override
+    public void apiRequestError(String message) {
+        loginGoogleButton.setEnabled(true);
+        loginSpotifyButton.setEnabled(true);
+        Log.d(LOG_TAG, "Error de respuesta en la API -> " + message);
+        Toast.makeText(this, "Se ha producido un error", Toast.LENGTH_LONG).show();
+    }
+
+    /*@Override
     public void processFinish(JSONObject jsonObject) {
         if(jsonObject == null) {
             Log.d("LOGINACTIVITY", "El servidor no ha devuelto respuesta alguna");
@@ -248,5 +278,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 e.printStackTrace();
             }
         }
-    }
+    }*/
+
 }

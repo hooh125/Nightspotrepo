@@ -28,6 +28,30 @@
                     android:id="@+id/toolbar"
                     layout="@layout/toolbar" />
 
+                <LinearLayout
+                    android:id="@+id/layout_loading_library"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_gravity="top"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <android.support.v7.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tv_loading_content" />
+
+                    <ProgressBar
+                        android:id="@+id/pb_load_tracks"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_gravity="bottom"
+                        android:progress="0"
+                        android:visibility="visible" />
+                </LinearLayout>
+
             </LinearLayout>
 
             <fragment

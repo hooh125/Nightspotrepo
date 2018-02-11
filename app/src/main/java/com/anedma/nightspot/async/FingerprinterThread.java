@@ -1,11 +1,9 @@
-package com.anedma.nightspot;
+package com.anedma.nightspot.async;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.anedma.nightspot.activities.PrintTracksActivity;
-import com.anedma.nightspot.async.GracenoteResponse;
-import com.anedma.nightspot.dto.Track;
+import com.anedma.nightspot.async.response.GracenoteResponse;
 import com.gracenote.gnsdk.GnException;
 
 /**

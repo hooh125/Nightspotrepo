@@ -17,8 +17,8 @@ import android.widget.Toast;
 
 import com.anedma.nightspot.AutocompleteAdapter;
 import com.anedma.nightspot.R;
-import com.anedma.nightspot.async.AsyncResponse;
-import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.async.ApiController;
+import com.anedma.nightspot.async.response.PubRegResponse;
 import com.anedma.nightspot.dto.Pub;
 import com.anedma.nightspot.dto.User;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -38,7 +38,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class PubRegActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, OnMapReadyCallback, AsyncResponse {
+public class PubRegActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, OnMapReadyCallback, PubRegResponse {
 
     public static final String LOG_TAG = "PUBREGACTIVITY";
     public static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
@@ -51,9 +51,11 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
     private EditText etPhone;
     private LatLng position;
     private String address;
+    private User user;
     private JSONObject placeInfo;
     private Button buttonSend;
     private AutoCompleteTextView autoCompleteTextView;
+    private ApiController apiController;
     private GoogleMap map;
     private AutocompleteAdapter adapter = null;
 
@@ -61,9 +63,11 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pub_reg);
+        apiController = ApiController.getInstance();
+        apiController.setDelegate(this);
+        user = User.getInstance();
+
         setupUI();
-
-
     }
 
     private void setupUI() {
@@ -74,7 +78,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(checkValidPub()) {
+                if (checkValidPub()) {
                     sendPubOnline(createPubFromForm());
                 }
             }
@@ -92,24 +96,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     private void sendPubOnline(Pub pub) {
-        Log.d(LOG_TAG, "Intentando insertar Pub online");
-        DbTask task = new DbTask(this);
-        User user = User.getInstance();
-        JSONObject json = new JSONObject();
-        try {
-            json.put("operation", "insertPub");
-            json.put("name", pub.getName());
-            json.put("description", pub.getDescription());
-            json.put("phone", pub.getPhone());
-            json.put("lat", pub.getLatLng().latitude);
-            json.put("lng", pub.getLatLng().longitude);
-            json.put("address", pub.getAddress());
-            json.put("email", user.getEmail());
-            Log.d(LOG_TAG, json.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        task.execute(json);
+        apiController.requestInsertPub(pub, user.getEmail());
     }
 
     private Pub createPubFromForm() {
@@ -128,14 +115,14 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         String phone = etPhone.getText().toString();
         String address = null;
         try {
-            if(placeInfo != null) {
+            if (placeInfo != null) {
                 address = placeInfo.getString("formatted_address");
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
         LatLng latLng = position;
-        if(name.isEmpty() || description.isEmpty() || phone.isEmpty() || latLng == null || address != null) {
+        if (name.isEmpty() || description.isEmpty() || phone.isEmpty() || latLng == null || address == null) {
             Toast.makeText(this, "Te falta rellenar algún campo", Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -151,12 +138,12 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
 
     private void refreshMap(JSONObject info) {
         try {
-            JSONObject latlngJson = info.getJSONObject("geometry").getJSONObject("location");
-            hideKeyboard(this);
-            position = new LatLng(latlngJson.getDouble("lat"), latlngJson.getDouble("lng"));
-            address = placeInfo.getString("formatted_address");
             placeInfo = info;
-            if(map != null) {
+            JSONObject latlngJson = info.getJSONObject("geometry").getJSONObject("location");
+            position = new LatLng(latlngJson.getDouble("lat"), latlngJson.getDouble("lng"));
+            hideKeyboard(this);
+            address = placeInfo.getString("formatted_address");
+            if (map != null) {
                 map.addMarker(new MarkerOptions().position(position));
                 CameraPosition cameraPosition = new CameraPosition.Builder()
                         .target(position)
@@ -181,31 +168,26 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         if (view == null) {
             view = new View(activity);
         }
-        if(imm != null)
+        if (imm != null)
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
-    @Override
-    public void processFinish(JSONObject jsonObject) {
-        if(jsonObject != null) {
-            try {
-                if(!jsonObject.getBoolean("error")) {
-                    User user = User.getInstance();
-                    user.setPub(true);
-                    Log.d(LOG_TAG, "Pub registrado correctamente");
-                    Log.d(LOG_TAG, jsonObject.toString());
-                    startPrintTracksActivity();
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void startPrintTracksActivity() {
         Intent intent = new Intent(this, PrintTracksActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void apiRequestError(String message) {
+        Log.d(LOG_TAG, "Error de respuesta en la API -> " + message);
+        Toast.makeText(this, "Se ha producido un error", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void pubRegResponse() {
+        user.setPub(true);
+        startPrintTracksActivity();
     }
 
     class PlacesAPIRequest extends AsyncTask<String, Void, JSONObject> {

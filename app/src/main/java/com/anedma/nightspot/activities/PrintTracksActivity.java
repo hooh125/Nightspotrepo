@@ -18,25 +18,22 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.anedma.nightspot.DownloadImageTask;
-import com.anedma.nightspot.FingerprinterThread;
 import com.anedma.nightspot.R;
-import com.anedma.nightspot.async.AsyncResponse;
-import com.anedma.nightspot.async.DbTask;
-import com.anedma.nightspot.async.DownloadImageResponse;
-import com.anedma.nightspot.async.GracenoteResponse;
+import com.anedma.nightspot.async.ApiController;
+import com.anedma.nightspot.async.FingerprinterThread;
+import com.anedma.nightspot.async.response.DownloadImageResponse;
+import com.anedma.nightspot.async.response.GracenoteResponse;
+import com.anedma.nightspot.async.response.PubPrintTracksResponse;
+import com.anedma.nightspot.async.task.DownloadImageTask;
 import com.anedma.nightspot.dto.Track;
 import com.anedma.nightspot.dto.User;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PrintTracksActivity extends AppCompatActivity implements View.OnClickListener, GracenoteResponse, AsyncResponse {
+public class PrintTracksActivity extends AppCompatActivity implements View.OnClickListener, GracenoteResponse, PubPrintTracksResponse {
 
     private static final String LOG_TAG = "PRINTTRACKSACTIVITY";
     private List<Track> tracks = new ArrayList<>();
@@ -44,6 +41,9 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
     private TrackAdapter adapter;
     private ListView lvTracks;
     private Button buttonSendTracks;
+    private Switch switch_fingerprint;
+    private User user;
+    private ApiController apiController;
     private GracenoteResponse delegate;
     private Context context;
 
@@ -51,6 +51,9 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_print_tracks);
+        apiController = ApiController.getInstance();
+        apiController.setDelegate(this);
+        user = User.getInstance();
         delegate = this;
         context = this;
 
@@ -61,25 +64,39 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
         lvTracks.setAdapter(adapter);
 
 
-        Switch switch_fingerprint = findViewById(R.id.sw_start_prints);
+        switch_fingerprint = findViewById(R.id.sw_start_prints);
         switch_fingerprint.setEnabled(true);
         fingerprintThread = new FingerprinterThread(context, delegate);
         switch_fingerprint.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    if (!fingerprintThread.isAlive()) {
-                        fingerprintThread = new FingerprinterThread(context, delegate);
-                    }
-                    fingerprintThread.start();
-                    buttonView.setText(R.string.status_started);
-                } else if (fingerprintThread.isAlive()) {
-                    fingerprintThread.interrupt();
-                    buttonView.setText(R.string.status_stopped);
+                    togglePrintProcess(true);
+                } else  {
+                    togglePrintProcess(false);
                 }
             }
         });
+    }
 
+    @Override
+    protected void onPause() {
+        togglePrintProcess(false);
+        super.onPause();
+    }
+
+    private void togglePrintProcess(boolean start) {
+        if(start && !fingerprintThread.isAlive()) {
+            switch_fingerprint.setText(R.string.status_started);
+            switch_fingerprint.setChecked(true);
+            switch_fingerprint.setEnabled(true);
+            fingerprintThread.start();
+        } else if(!start && fingerprintThread.isAlive()) {
+            switch_fingerprint.setText(R.string.status_stopped);
+            switch_fingerprint.setChecked(false);
+            switch_fingerprint.setEnabled(true);
+            fingerprintThread.interrupt();
+        }
     }
 
     @Override
@@ -107,43 +124,27 @@ public class PrintTracksActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        User user = User.getInstance();
-        JSONObject json = new JSONObject();
-        JSONArray jsonTracks = new JSONArray();
-        try {
-            for (Track track : tracks) {
-                JSONObject jsonTrack = new JSONObject();
-                jsonTrack.put("song", track.getSong());
-                jsonTrack.put("artist", track.getArtist());
-                jsonTrack.put("album", track.getAlbum());
-                jsonTracks.put(jsonTrack);
-            }
-            json.put("operation", "insertPubTracks");
-            json.put("email", user.getEmail());
-            json.put("tracks", jsonTracks);
-            DbTask task = new DbTask(this);
-            task.execute(json);
-            Log.d(LOG_TAG, json.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if(fingerprintThread != null && fingerprintThread.isAlive()) {
+            fingerprintThread.interrupt();
+            switch_fingerprint.setChecked(false);
+            switch_fingerprint.setEnabled(false);
+            switch_fingerprint.setText(R.string.status_stopped);
         }
-
+        apiController.requestInsertPubTracks(tracks, user.getEmail());
     }
 
     @Override
-    public void processFinish(JSONObject jsonObject) {
-        try {
-            boolean error = jsonObject.getBoolean("error");
-            if(!error) {
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                Log.d(LOG_TAG, "Ha ocurrido un error al insertar los tracks del pub");
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    public void apiRequestError(String message) {
+        Log.d(LOG_TAG, "Error de respuesta en la API -> " + message);
+        Toast.makeText(this, "Se ha producido un error", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void printTracksResponse() {
+        if(fingerprintThread.isAlive()) fingerprintThread.interrupt();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private class TrackAdapter extends BaseAdapter {

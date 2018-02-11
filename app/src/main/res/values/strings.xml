@@ -53,4 +53,5 @@
     <string name="affinity_middlehigh">Mid-high</string>
     <string name="affinity_high">High</string>
     <string name="warning_must_have_gmaps">You need to install Google Maps</string>
+    <string name="button_reload_library">Reload library</string>
 </resources>

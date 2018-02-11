@@ -1,4 +1,4 @@
-package com.anedma.nightspot.async;
+package com.anedma.nightspot.async.response;
 
 import com.anedma.nightspot.dto.Track;
 

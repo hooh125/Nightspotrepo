@@ -1,11 +1,11 @@
-package com.anedma.nightspot;
+package com.anedma.nightspot.async.task;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.anedma.nightspot.async.DownloadImageResponse;
+import com.anedma.nightspot.async.response.DownloadImageResponse;
 
 import java.io.InputStream;
 

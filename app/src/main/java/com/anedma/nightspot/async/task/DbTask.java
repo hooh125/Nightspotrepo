@@ -1,21 +1,18 @@
-package com.anedma.nightspot.async;
+package com.anedma.nightspot.async.task;
 
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.anedma.nightspot.async.response.AsyncResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.HashMap;
 
 /**
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 20/1/18.

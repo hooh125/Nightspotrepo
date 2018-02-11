@@ -1,4 +1,4 @@
-package com.anedma.nightspot.async;
+package com.anedma.nightspot.async.response;
 
 import org.json.JSONObject;
 
@@ -6,6 +6,6 @@ import org.json.JSONObject;
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 24/01/2018.
  */
 
-public interface AsyncResponse {
+public interface AsyncResponse{
     void processFinish(JSONObject jsonObject);
 }

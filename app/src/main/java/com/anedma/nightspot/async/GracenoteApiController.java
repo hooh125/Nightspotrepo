@@ -1,15 +1,13 @@
-package com.anedma.nightspot;
+package com.anedma.nightspot.async;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.anedma.nightspot.async.GracenoteResponse;
+import com.anedma.nightspot.async.response.GracenoteResponse;
 import com.anedma.nightspot.dto.Track;
 import com.gracenote.gnsdk.GnAlbum;
 import com.gracenote.gnsdk.GnAlbumIterator;
-import com.gracenote.gnsdk.GnDataLevel;
 import com.gracenote.gnsdk.GnDescriptor;
 import com.gracenote.gnsdk.GnError;
 import com.gracenote.gnsdk.GnException;
@@ -220,21 +218,25 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             while (iterator.hasNext()) {
                 try {
                     GnAlbum gnAlbum = iterator.next();
-                    URL albumImgURL = new URL(gnAlbum.coverArt().assets().getIterator().next().urlHttp());
+                    URL albumImgURL = null;
+                    try {
+                        albumImgURL = new URL(gnAlbum.coverArt().assets().getIterator().next().urlHttp());
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
                     String trackArtist = gnAlbum.trackMatched().artist().name().display();
                     String albumArtist = gnAlbum.artist().name().display();
                     String artist = (!trackArtist.isEmpty()) ? trackArtist : albumArtist;
                     String song = gnAlbum.trackMatched().title().display();
                     String album = gnAlbum.title().display();
                     Track track;
-                    if (checkValidURL(albumImgURL)) {
+                    if (checkValidURL(albumImgURL) && albumImgURL != null) {
                         track = new Track(artist, song, album, albumImgURL);
                     } else {
                         track = new Track(artist, song, album);
                     }
                     delegate.trackReturned(track);
-                    //MANEJAR AQUÍ LO QUE SE HARÁ CON EL TRACK
-                } catch (GnException | MalformedURLException e) {
+                } catch (GnException e) {
                     e.printStackTrace();
                 }
             }

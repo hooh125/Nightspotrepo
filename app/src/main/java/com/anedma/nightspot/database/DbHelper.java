@@ -5,12 +5,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.anedma.nightspot.SpotifyApiController;
-import com.anedma.nightspot.activities.LoginActivity;
-import com.anedma.nightspot.async.DbTask;
+import com.anedma.nightspot.async.SpotifyApiController;
 import com.anedma.nightspot.exception.SQLiteInsertException;
-
-import org.json.JSONObject;
 
 import kaaes.spotify.webapi.android.models.Track;
 

@@ -1,12 +1,9 @@
-package com.anedma.nightspot;
+package com.anedma.nightspot.async;
 
 import android.util.Log;
 
-import com.anedma.nightspot.activities.LoginActivity;
-import com.anedma.nightspot.async.AsyncResponse;
-import com.anedma.nightspot.async.DbTask;
-import com.anedma.nightspot.database.DbHelper;
-import com.anedma.nightspot.exception.SQLiteInsertException;
+import com.anedma.nightspot.async.response.AsyncResponse;
+import com.anedma.nightspot.dto.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,9 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
@@ -37,22 +31,38 @@ import retrofit.client.Response;
 
 public class SpotifyApiController {
 
+    private static SpotifyApiController instance = null;
     private static final String LOG_TAG = "SPOTIFYAPICONTROLLER";
-    private AsyncResponse delegate;
     private static SpotifyService service;
     private static UserPrivate user = null;
     private static List<PlaylistSimple> myPlaylists = new ArrayList<>();
     private static List<PlaylistTrack> myPlaylistTracks = new ArrayList<>();
-    private static List<PlaylistTrack> tracksLeft = new ArrayList<>();
     private static int pendingCalls = 0;
+    private static boolean requestUpdate = false;
+    private AsyncResponse delegate;
 
-    public SpotifyApiController(String accessToken, AsyncResponse delegate) {
+    private SpotifyApiController() {
+
+    }
+
+    public static SpotifyApiController getInstance() {
+        if (instance == null) {
+            instance = new SpotifyApiController();
+        }
+        return instance;
+    }
+
+    public void setAccessToken(String accessToken) {
         SpotifyApi api = new SpotifyApi();
-        this.delegate = delegate;
+        delegate = ApiController.getInstance();
         if (!accessToken.isEmpty()) {
             api.setAccessToken(accessToken);
         }
         service = api.getService();
+    }
+
+    public void setRequestUpdate() {
+        SpotifyApiController.requestUpdate = true;
     }
 
     public void getUserData() {
@@ -117,8 +127,6 @@ public class SpotifyApiController {
             @Override
             public void success(Pager<PlaylistTrack> playlistTrackPager, Response response) {
                 myPlaylistTracks.addAll(playlistTrackPager.items);
-                LoginActivity loginActivity = (LoginActivity) delegate;
-                loginActivity.progressBar.setMax(myPlaylistTracks.size());
                 pendingCalls--;
                 Log.d("SPOTIFYAPI", "Pendientes: " + pendingCalls + " - Añadiendo " + playlistTrackPager.items.size() + " canciones de la lista " + playlist.name + " ID: " + playlist.id);
                 if (pendingCalls == 0) {
@@ -137,43 +145,33 @@ public class SpotifyApiController {
 
     private void insertTracksIntoDB() {
         //TODO: Revisar este método
-        if(delegate != null) {
-            DbHelper dbHelper = new DbHelper((LoginActivity) delegate);
-            LoginActivity loginActivity = (LoginActivity) delegate;
-            tracksLeft.addAll(myPlaylistTracks);
+        if (delegate != null) {
+            User user = User.getInstance();
             JSONArray jsonTracks = new JSONArray();
             try {
-                for(PlaylistTrack plTrack : myPlaylistTracks) {
+                for (PlaylistTrack plTrack : myPlaylistTracks) {
                     JSONObject track = new JSONObject();
-                    try {
-                        dbHelper.insert(plTrack.track);
-                        track.put("artist", removeSpecialCharacters(getArtists(plTrack.track.artists)));
-                        track.put("song", removeSpecialCharacters(plTrack.track.name));
-                        track.put("album", removeSpecialCharacters(plTrack.track.album.name));
-                        jsonTracks.put(track);
-                        tracksLeft.remove(plTrack);
-                        if(jsonTracks.length() == 300) {
-                            insertUserTracksOnline(loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
-                            jsonTracks = new JSONArray();
-                        }
-                    } catch (SQLiteInsertException e) {
-                        e.printStackTrace();
-                    }
+                    track.put("artist", removeSpecialCharacters(getArtists(plTrack.track.artists)));
+                    track.put("song", removeSpecialCharacters(plTrack.track.name));
+                    track.put("album", removeSpecialCharacters(plTrack.track.album.name));
+                    jsonTracks.put(track);
                 }
-                insertUserTracksOnline(loginActivity.account.getEmail(), jsonTracks, tracksLeft.size());
+                ApiController apiController = ApiController.getInstance();
+                apiController.requestInsertUserTracks(requestUpdate, user.getEmail(), jsonTracks);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            loginActivity.checkLoginStatus();
         } else {
             Log.d("DB", "Error al intentar insertar las canciones en la BBDD local, contexto no inicializado");
         }
     }
 
-    private void insertUserTracksOnline(String email, JSONArray tracks, int tracksLeft) {
+    /* private void insertUserTracksOnline(String email, JSONArray tracks, int tracksLeft) {
         JSONObject json = new JSONObject();
         try {
             json.put("operation", "insertUserTracks");
+            json.put("requestUpdate", requestUpdate);
+            if(requestUpdate) requestUpdate = false;
             json.put("tracksLeft", tracksLeft);
             json.put("email", email);
             json.put("tracks", tracks);
@@ -185,14 +183,13 @@ public class SpotifyApiController {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-    }
+    }*/
 
     public static String getArtists(List<ArtistSimple> ts) {
         StringBuilder artists = new StringBuilder();
-        for(ArtistSimple artist : ts) {
-            if(!artists.toString().contains(artist.name)) {
-                if(!artists.toString().isEmpty()) {
+        for (ArtistSimple artist : ts) {
+            if (!artists.toString().contains(artist.name)) {
+                if (!artists.toString().isEmpty()) {
                     artists.append(", ").append(artist.name);
                 } else {
                     artists.append(artist.name);
@@ -203,14 +200,6 @@ public class SpotifyApiController {
     }
 
     private String removeSpecialCharacters(String string) {
-        return string.replaceAll("[^A-zÀ-ÿ0-9'.,&]+"," ");
-    }
-
-    public int getTracksNumber() {
-        return myPlaylistTracks.size();
-    }
-
-    public int getTracksLeft() {
-        return tracksLeft.size();
+        return string.replaceAll("[^A-zÀ-ÿ0-9'.,&]+", " ");
     }
 }

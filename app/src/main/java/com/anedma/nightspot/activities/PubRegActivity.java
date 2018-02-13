@@ -46,6 +46,7 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
     public static final String TYPE_PLACE_DETAILS = "/details";
     public static final String OUT_JSON = "/json";
     public static final String API_KEY = "AIzaSyAW2_BIVFwv3-EaP4cQr1d9lKYTiOArJ3s";
+    private Pub pub;
     private EditText etName;
     private EditText etDescription;
     private EditText etPhone;
@@ -68,6 +69,30 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         user = User.getInstance();
 
         setupUI();
+
+
+        if(getIntent().hasExtra("pubId")) {
+            Intent i = getIntent();
+            int pubId = i.getIntExtra("pubId", -1);
+            String name = i.getStringExtra("name");
+            String description = i.getStringExtra("description");
+            String phone = i.getStringExtra("phone");
+            Double lat = i.getDoubleExtra("lat", -1);
+            Double lng = i.getDoubleExtra("lng", -1);
+            position = new LatLng(lat, lng);
+            address = i.getStringExtra("address");
+            pub = new Pub(pubId, name, description, address, position, phone);
+            fillFormWithData();
+        }
+
+    }
+
+    private void fillFormWithData() {
+        etName.setText(pub.getName());
+        etDescription.setText(pub.getDescription());
+        etPhone.setText(pub.getPhone());
+        autoCompleteTextView.setText(pub.getAddress());
+        moveCameraTo(pub.getLatLng());
     }
 
     private void setupUI() {
@@ -105,6 +130,9 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         String phone = etPhone.getText().toString();
         String mAddress = address;
         LatLng latLng = position;
+        if(pub != null) {
+            return new Pub(pub.getId(), name, description, mAddress, latLng, phone);
+        }
         return new Pub(name, description, mAddress, latLng, phone);
     }
 
@@ -117,6 +145,8 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
         try {
             if (placeInfo != null) {
                 address = placeInfo.getString("formatted_address");
+            } else if(pub.getAddress() != null) {
+                address = pub.getAddress();
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -143,21 +173,29 @@ public class PubRegActivity extends AppCompatActivity implements AdapterView.OnI
             position = new LatLng(latlngJson.getDouble("lat"), latlngJson.getDouble("lng"));
             hideKeyboard(this);
             address = placeInfo.getString("formatted_address");
-            if (map != null) {
-                map.addMarker(new MarkerOptions().position(position));
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(position)
-                        .zoom(17).build();
-                map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }
+            moveCameraTo(position);
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void moveCameraTo(LatLng position) {
+        if (map != null) {
+            map.clear();
+            map.addMarker(new MarkerOptions().position(position));
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(position)
+                    .zoom(17).build();
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.map = googleMap;
+        if(pub != null) {
+            moveCameraTo(pub.getLatLng());
+        }
     }
 
     public static void hideKeyboard(Activity activity) {

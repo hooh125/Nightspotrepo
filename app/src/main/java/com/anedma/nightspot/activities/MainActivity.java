@@ -57,6 +57,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, UserResponse, PubResponse, SpotifyResponse {
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView tvPubName;
     private TextView tvPubTracks;
     private TextView tvUserTracks;
+    private Button buttonEditPub;
     private ApiController apiController;
 
 
@@ -168,7 +170,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     startPrintTracksActivity();
                 }
             });
-            Button buttonEditPub = content.findViewById(R.id.button_edit_pub);
+            buttonEditPub = content.findViewById(R.id.button_edit_pub);
+            buttonEditPub.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startPubRegActivity();
+                }
+            });
             tvPubName = content.findViewById(R.id.tv_pub_name);
             tvPubTracks = content.findViewById(R.id.tv_pub_tracks);
         } else {
@@ -206,6 +214,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void startPubRegActivity() {
         Log.d(LOG_TAG, "Iniciando actividad para registro de Pub");
         Intent intent = new Intent(context, PubRegActivity.class);
+        if(user.isPub() && pub != null) {
+            intent.putExtra("pubId", pub.getId());
+            intent.putExtra("name", pub.getName());
+            intent.putExtra("description", pub.getDescription());
+            intent.putExtra("phone", pub.getPhone());
+            intent.putExtra("lat", pub.getLatLng().latitude);
+            intent.putExtra("lng", pub.getLatLng().longitude);
+            intent.putExtra("address", pub.getAddress());
+        }
         startActivity(intent);
     }
 
@@ -222,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (pub != null) {
                 tvPubName.setText(pub.getName());
                 tvPubTracks.setText(String.valueOf(pub.getTracks()));
+
             }
         } else {
             Log.d(LOG_TAG, "Actualizando las canciones del usuario");

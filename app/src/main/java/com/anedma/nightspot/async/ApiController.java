@@ -92,6 +92,8 @@ public class ApiController implements AsyncResponse {
         JSONObject json = new JSONObject();
         try {
             json.put("operation", "insertPub");
+            if(pub.getId() != 0)
+                json.put("id", pub.getId());
             json.put("name", pub.getName());
             json.put("description", pub.getDescription());
             json.put("phone", pub.getPhone());
@@ -295,9 +297,10 @@ public class ApiController implements AsyncResponse {
         String phone = jsonPub.getString("phone");
         String lat = jsonPub.getString("lat");
         String lng = jsonPub.getString("lng");
+        String address = jsonPub.getString("address");
         LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
         int tracks = Integer.parseInt(jsonPub.getString("tracks"));
-        Pub pub = new Pub(pubId, name, description, position, phone, tracks);
+        Pub pub = new Pub(pubId, name, description, address, position, phone, tracks);
         Log.d(LOG_TAG, "El pub se ha cargado correctamente, intentando rellenar controles");
         PubResponse pubResponse = (PubResponse) delegate;
         pubResponse.pubResponse(pub);

@@ -4,6 +4,8 @@ package com.anedma.nightspot.dto;
 import com.anedma.nightspot.R;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
+
 /**
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 26/01/2018.
  */
@@ -18,6 +20,25 @@ public class Pub {
     private String phone;
     private String affinity;
     private int tracks;
+
+    public Pub(int id, String name, String description, String address, LatLng latLng, String phone, int tracks) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.latLng = latLng;
+        this.phone = phone;
+        this.tracks = tracks;
+    }
+
+    public Pub(int id, String name, String description, String address, LatLng latLng, String phone) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.latLng = latLng;
+        this.phone = phone;
+    }
 
     public Pub(int id, String name, String description, LatLng latLng, String phone, int tracks) {
         this.id = id;

@@ -4,8 +4,6 @@ package com.anedma.nightspot.dto;
 import com.anedma.nightspot.R;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.Serializable;
-
 /**
  * Class created by Andrés Mata (andreseduardomp@gmail.com) on 26/01/2018.
  */
@@ -122,24 +120,28 @@ public class Pub {
 
     public int getResourceFromAffinity() {
         int resource = -1;
-        if(!affinity.isEmpty()) {
-            switch (affinity) {
-                case "high":
-                    resource = R.drawable.ic_map_marker_green;
-                    break;
-                case "middle-high":
-                    resource = R.drawable.ic_map_marker_lightgreen;
-                    break;
-                case "middle":
-                    resource = R.drawable.ic_map_maker_yellow;
-                    break;
-                case "low":
-                    resource = R.drawable.ic_map_marker_orange;
-                    break;
-                default:
-                    resource = R.drawable.ic_map_marker_grey;
-                    break;
+        if(affinity != null) {
+            if(!affinity.isEmpty()) {
+                switch (affinity) {
+                    case "high":
+                        resource = R.drawable.ic_map_marker_green;
+                        break;
+                    case "middle-high":
+                        resource = R.drawable.ic_map_marker_lightgreen;
+                        break;
+                    case "middle":
+                        resource = R.drawable.ic_map_maker_yellow;
+                        break;
+                    case "low":
+                        resource = R.drawable.ic_map_marker_orange;
+                        break;
+                    default:
+                        resource = R.drawable.ic_map_marker_grey;
+                        break;
+                }
             }
+        } else {
+            resource = R.drawable.ic_map_marker_grey;
         }
         return resource;
     }

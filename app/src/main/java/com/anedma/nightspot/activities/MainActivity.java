@@ -46,6 +46,7 @@ import com.anedma.nightspot.dto.Pub;
 import com.anedma.nightspot.dto.User;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -58,7 +59,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import java.io.Serializable;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, UserResponse, PubResponse, SpotifyResponse {
@@ -256,20 +256,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void fillMap() {
-        if (map != null && pubList.size() > 0) {
+        if (map != null && (pubList.size() > 0 || pub != null)) {
             map.clear();
             map.setOnMarkerClickListener(this);
             LatLngBounds.Builder bld = new LatLngBounds.Builder();
-            for (Integer pubId : pubList.keySet()) {
-                Pub pub = pubList.get(pubId);
+            CameraUpdate cameraUpdate;
+            if(user.isPub()) {
                 Marker marker = map.addMarker(new MarkerOptions().position(pub.getLatLng())
                         .title(pub.getName())
                         .icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
                 marker.setTag(pub.getId());
                 bld.include(pub.getLatLng());
+                cameraUpdate = CameraUpdateFactory.newLatLngZoom(pub.getLatLng(), 15);
+            } else {
+                for (Integer pubId : pubList.keySet()) {
+                    Pub pub = pubList.get(pubId);
+                    Marker marker = map.addMarker(new MarkerOptions().position(pub.getLatLng())
+                            .title(pub.getName())
+                            .icon(BitmapDescriptorFactory.fromBitmap(ResourceUtil.getBitmap(this, pub.getResourceFromAffinity()))));
+                    marker.setTag(pub.getId());
+                    bld.include(pub.getLatLng());
+                }
+                LatLngBounds bounds = bld.build();
+                cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 150);
             }
-            LatLngBounds bounds = bld.build();
-            map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
+            map.animateCamera(cameraUpdate);
             MarkerPubInfo adapter = new MarkerPubInfo();
             map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                 @Override
@@ -388,6 +399,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void calculateAffinityDone() {
         loadUserPubs(false);
+        Toast.makeText(this, R.string.toast_affinity_recalculated, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -409,6 +421,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void pubResponse(Pub pub) {
         this.pub = pub;
+        fillMap();
         loadDataIntoNavigationDrawer();
     }
 

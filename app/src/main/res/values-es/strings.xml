@@ -50,4 +50,5 @@
     <string name="affinity_high">Alta</string>
     <string name="warning_must_have_gmaps">Necesitas instalar Google Maps</string>
     <string name="button_reload_library">Actualizar librería</string>
+    <string name="toast_affinity_recalculated">Afinidad recalculada satisfactoriamente</string>
 </resources>

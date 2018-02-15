@@ -15,6 +15,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        setupToolbar();
         setupNavigationDrawer();
         setupFAB();
 
@@ -121,6 +123,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         apiController.requestUser(user.getEmail());
     }
 
+    private void setupToolbar() {
+        final ActionBar mToolbar = getSupportActionBar();
+        if (mToolbar != null) {
+            mToolbar.setDisplayShowCustomEnabled(true);
+            mToolbar.setDisplayShowTitleEnabled(true);
+            mToolbar.setHomeButtonEnabled(true);
+            mToolbar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
     private void setupFAB() {
         fab = findViewById(R.id.fab);
         if(user.isPub()) fab.setVisibility(View.GONE);
@@ -137,10 +149,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerToggle = new DrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
         mDrawerLayout.addDrawerListener(mDrawerToggle);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setHomeButtonEnabled(true);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
         mDrawerToggle.syncState();
         View leftDrawer = findViewById(R.id.include_left_drawer);
         //Cargamos los datos del usuario y su foto en el navigation drawer

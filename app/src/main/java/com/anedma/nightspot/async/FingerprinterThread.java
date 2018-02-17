@@ -7,12 +7,12 @@ import com.anedma.nightspot.async.response.GracenoteResponse;
 import com.gracenote.gnsdk.GnException;
 
 /**
- * Created by a-edu on 24/10/2017.
+ * Class created by Andrés Mata (andreseduardomp@gmail.com) on 24/10/2017.
+ *
  */
 
 public class FingerprinterThread extends Thread {
 
-    private boolean status = true;
     private Context context;
     private GracenoteResponse delegate;
     private GracenoteApiController controller;
@@ -30,8 +30,15 @@ public class FingerprinterThread extends Thread {
     @Override
     public void run() {
         super.run();
+        if(controller == null) {
+            try {
+                controller = GracenoteApiController.getInstance(context, delegate);
+            } catch (GnException e) {
+                e.printStackTrace();
+            }
+        }
         controller.startAudioProcessing();
-        while(status) {
+        do {
             if(!controller.isProcessing()) {
                 Log.d("Fingerprint", "Identificando...");
                 controller.startIdentify();
@@ -39,10 +46,10 @@ public class FingerprinterThread extends Thread {
             try {
                 sleep(10000);
             } catch (InterruptedException e) {
-                controller.stopAudioProcessing();
                 break;
             }
-        }
+        } while(!isInterrupted());
+        controller.killInstance();
     }
 
 }

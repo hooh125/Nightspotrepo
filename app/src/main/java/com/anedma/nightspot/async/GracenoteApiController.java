@@ -52,12 +52,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by a-edu on 21/10/2017.
+ * Class created by Andrés Mata (andreseduardomp@gmail.com) on 21/10/2017.
+ *
  */
 
 public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStreamEvents {
 
-
+    private static final String LOG_TAG = "GRACENOTEAPICONTROLLER";
     private static GracenoteApiController instance;
     private static GracenoteResponse delegate;
     private Context context;
@@ -90,8 +91,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         GnLookupLocalStream.enable();
         Thread ingestThread = new Thread(new LocalBundleIngestRunnable(context));
         ingestThread.start();
-        gnLocale =
-                new GnLocale(GnLocaleGroup.kLocaleGroupMusic,
+        gnLocale = new GnLocale(GnLocaleGroup.kLocaleGroupMusic,
                         GnLanguage.kLanguageEnglish,
                         GnRegion.kRegionGlobal,
                         GnDescriptor.kDescriptorDefault,
@@ -105,14 +105,20 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         streamIdObjects.add(gnMusicIdStream);
     }
 
-    static GracenoteApiController getInstance(Context context, GracenoteResponse delegate) throws GnException {
+    public static GracenoteApiController getInstance(Context context, GracenoteResponse delegate) throws GnException {
         if (instance == null) {
             instance = new GracenoteApiController(context, delegate);
         }
         return instance;
     }
 
-    void startAudioProcessing() {
+    public void killInstance() {
+        stopAudioProcessing();
+        instance = null;
+        delegate = null;
+    }
+
+    public void startAudioProcessing() {
         if (gnMusicIdStream != null) {
 
             // Create a thread to process the data pulled from GnMic
@@ -120,11 +126,11 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             // audio processing is stopped. This cannot be called on the main thread.
             Thread audioProcessThread = new Thread(new AudioProcessRunnable());
             audioProcessThread.start();
-
+            delegate.audioProcessStarted();
         }
     }
 
-    void stopAudioProcessing() {
+    public void stopAudioProcessing() {
         if (gnMusicIdStream != null) {
 
             try {
@@ -137,7 +143,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                 // stopping audio processing stops the audio processing thread started
                 // in onResume
                 gnMusicIdStream.audioProcessStop();
-
+                delegate.audioProcessStopped();
             } catch (GnException e) {
 
                 Log.e(appString, e.errorCode() + ", " + e.errorDescription() + ", " + e.errorModule() + " : " + e.errorAPI() + ": " + e.errorDescription());
@@ -147,7 +153,9 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
         }
     }
 
-    void startIdentify() {
+
+
+    public void startIdentify() {
         isProcessing = true;
         try {
             gnMusicIdStream.identifyAlbumAsync();
@@ -202,12 +210,12 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
 
     @Override
     public void musicIdStreamProcessingStatusEvent(GnMusicIdStreamProcessingStatus gnMusicIdStreamProcessingStatus, IGnCancellable iGnCancellable) {
-
+        //Log.d(LOG_TAG, "Status event processing: isCancelled" + iGnCancellable.isCancelled());
     }
 
     @Override
     public void musicIdStreamIdentifyingStatusEvent(GnMusicIdStreamIdentifyingStatus gnMusicIdStreamIdentifyingStatus, IGnCancellable iGnCancellable) {
-
+        //Log.d(LOG_TAG, "Status event indentifying: isCancelled" + iGnCancellable.isCancelled());
     }
 
     @Override
@@ -218,11 +226,11 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
             while (iterator.hasNext()) {
                 try {
                     GnAlbum gnAlbum = iterator.next();
-                    URL albumImgURL = null;
+                    URL albumImgURL;
                     try {
                         albumImgURL = new URL(gnAlbum.coverArt().assets().getIterator().next().urlHttp());
                     } catch (MalformedURLException e) {
-                        e.printStackTrace();
+                        albumImgURL = null;
                     }
                     String trackArtist = gnAlbum.trackMatched().artist().name().display();
                     String albumArtist = gnAlbum.artist().name().display();
@@ -235,13 +243,16 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
                     } else {
                         track = new Track(artist, song, album);
                     }
-                    delegate.trackReturned(track);
+                    if(delegate != null) {
+                        delegate.trackReturned(track);
+                    }
                 } catch (GnException e) {
                     e.printStackTrace();
                 }
             }
         }
         isProcessing = false;
+        delegate.processingFinished();
     }
 
     public boolean isProcessing() {
@@ -261,6 +272,7 @@ public class GracenoteApiController implements IGnSystemEvents, IGnMusicIdStream
     @Override
     public void musicIdStreamIdentifyCompletedWithError(GnError gnError) {
         isProcessing = false;
+        delegate.processingFinished();
     }
 
     @Override

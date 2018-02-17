@@ -51,4 +51,7 @@
     <string name="warning_must_have_gmaps">Necesitas instalar Google Maps</string>
     <string name="button_reload_library">Actualizar librería</string>
     <string name="toast_affinity_recalculated">Afinidad recalculada satisfactoriamente</string>
+    <string name="tv_loading_pub_tracks">Cargando canciones</string>
+    <string name="tv_switch_starting">Iniciando…</string>
+    <string name="tv_switch_stopping">Deteniendo…</string>
 </resources>

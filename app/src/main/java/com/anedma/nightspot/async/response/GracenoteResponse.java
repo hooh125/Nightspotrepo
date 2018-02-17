@@ -9,5 +9,8 @@ import com.anedma.nightspot.dto.Track;
 public interface GracenoteResponse {
 
     void trackReturned(Track track);
+    void processingFinished();
+    void audioProcessStopped();
+    void audioProcessStarted();
 
 }

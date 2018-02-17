@@ -83,21 +83,25 @@ public class PubInfoDialog extends DialogFragment implements OnMapReadyCallback 
             tvPubTracks.setText(String.valueOf(pub.getTracks()));
             String affinity = pub.getAffinity();
             int resValue;
-            switch (affinity) {
-                case "low":
-                    resValue = R.string.affinity_low;
-                    break;
-                case "middle":
-                    resValue = R.string.affinity_middle;
-                    break;
-                case "middle-high":
-                    resValue = R.string.affinity_middlehigh;
-                    break;
-                case "high":
-                    resValue = R.string.affinity_high;
-                    break;
-                default:
-                    resValue = R.string.affinity_none;
+            if(affinity != null) {
+                switch (affinity) {
+                    case "low":
+                        resValue = R.string.affinity_low;
+                        break;
+                    case "middle":
+                        resValue = R.string.affinity_middle;
+                        break;
+                    case "middle-high":
+                        resValue = R.string.affinity_middlehigh;
+                        break;
+                    case "high":
+                        resValue = R.string.affinity_high;
+                        break;
+                    default:
+                        resValue = R.string.affinity_none;
+                }
+            } else {
+                resValue = R.string.affinity_none;
             }
             Log.d("DIALOG", "Poniendo " + getResources().getString(resValue) + " de valor");
             tvPubAffinity.setText(resValue);

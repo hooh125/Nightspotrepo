@@ -286,8 +286,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onInfoWindowClick(Marker marker) {
                     Integer pubId = (Integer) marker.getTag();
-                    Pub pub = pubList.get(pubId);
-                    PubInfoDialog pubInfoDialog = PubInfoDialog.newInstance(pub);
+                    Pub pubForWindow;
+                    if(user.isPub()) {
+                        pubForWindow = pub;
+                    } else {
+                        pubForWindow = pubList.get(pubId);
+                    }
+                    PubInfoDialog pubInfoDialog = PubInfoDialog.newInstance(pubForWindow);
                     pubInfoDialog.show(getSupportFragmentManager(), "pubinfodialog" + marker.getTag());
                 }
             });

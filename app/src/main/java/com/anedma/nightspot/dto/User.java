@@ -26,6 +26,10 @@ public class User {
         return instance;
     }
 
+    public void killInstance() {
+        instance = null;
+    }
+
     private User(String name, String lastName, String email, boolean isPub, Uri photoUri) {
         User.name = name;
         User.lastName = lastName;

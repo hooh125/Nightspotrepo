@@ -160,6 +160,17 @@ public class ApiController implements AsyncResponse {
         }
     }
 
+    public void requestDeleteUser(String email) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("operation", "deleteUser");
+            json.put("email", email);
+            requestOperation(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void requestCalculateUserAffinity(String email) {
         JSONObject json = new JSONObject();
         try {
@@ -199,6 +210,9 @@ public class ApiController implements AsyncResponse {
                     case "insertPubTracks":
                         insertPubTracksResponse(jsonObject);
                         break;
+                    case "deleteUser":
+                        deleteUserResponse(jsonObject);
+                        break;
                     case "getUser":
                         getUserResponse(jsonObject);
                         break;
@@ -219,8 +233,6 @@ public class ApiController implements AsyncResponse {
             Log.d(LOG_TAG, "El servidor no ha devuelto respuesta");
         }
     }
-
-
 
     //RESPUESTAS
 
@@ -255,6 +267,11 @@ public class ApiController implements AsyncResponse {
     private void insertPubTracksResponse(JSONObject jsonObject) {
         PubPrintTracksResponse pubPrintTracksDelegate = (PubPrintTracksResponse) delegate;
         pubPrintTracksDelegate.printTracksResponse();
+    }
+
+    private void deleteUserResponse(JSONObject jsonObject) {
+        UserResponse userResponse = (UserResponse) delegate;
+        userResponse.deleteUserResponse();
     }
 
     private void getUserResponse(JSONObject jsonObject) throws JSONException {

@@ -402,6 +402,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void deleteUserResponse() {
+
+    }
+
+    @Override
     public void calculateAffinityDone() {
         loadUserPubs(false);
         Toast.makeText(this, R.string.toast_affinity_recalculated, Toast.LENGTH_SHORT).show();

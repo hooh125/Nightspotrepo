@@ -12,6 +12,7 @@ public interface UserResponse extends ApiResponse {
 
     void userPubsResponse(HashMap<Integer, Pub> pubs);
     void userResponse(int id, String name, String lastName, boolean isPub, int tracks);
+    void deleteUserResponse();
     void calculateAffinityDone();
 
 }

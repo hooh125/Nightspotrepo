@@ -3,6 +3,8 @@ package com.anedma.nightspot;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,7 +13,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +43,6 @@ public class PubInfoDialog extends DialogFragment implements OnMapReadyCallback 
     @Override
     public void onStart() {
         super.onStart();
-
     }
 
     @NonNull
@@ -50,20 +50,14 @@ public class PubInfoDialog extends DialogFragment implements OnMapReadyCallback 
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        Dialog dialog = getDialog();
-        if (dialog != null)
-        {
-            Log.d("DIALOG", "Poniendo el view a full pantalla");
-            int width = ViewGroup.LayoutParams.MATCH_PARENT;
-            int height = ViewGroup.LayoutParams.MATCH_PARENT;
-            dialog.getWindow().setLayout(width, height);
-        }
         View view = inflater.inflate(R.layout.pub_info_dialog, null);
         loadTextViews(view);
         builder.setView(view);
         SupportMapFragment map = (SupportMapFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.map_pub_info_dialog);
         map.getMapAsync(this);
-        return builder.create();
+        Dialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        return dialog;
     }
 
     private void loadTextViews(View view) {

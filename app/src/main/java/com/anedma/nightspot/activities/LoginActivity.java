@@ -2,6 +2,7 @@ package com.anedma.nightspot.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -21,13 +22,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.Task;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener, LoginResponse, SpotifyResponse {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener, LoginResponse, SpotifyResponse, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String LOG_TAG = "LOGINACTIVITY";
     private static final int REQUESTCODE_GOOGLE_SIGNIN = 123; //Este es el código de vuelta que usara la API para saber que el usuario ha conseguido loguearse.
@@ -227,6 +230,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         loginSpotifyButton.setEnabled(true);
         Log.d(LOG_TAG, "Error de respuesta en la API -> " + message);
         Toast.makeText(this, "Se ha producido un error", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
     /*@Override

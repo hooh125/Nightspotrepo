@@ -1,191 +1,212 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/linearLayoutDialog"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="30dp"
-    android:background="@color/colorPrimaryLight"
-    android:orientation="vertical">
+    android:layout_centerHorizontal="true"
+    android:layout_centerInParent="true"
+    android:layout_centerVertical="true"
+    android:background="@android:color/transparent">
 
-    <TextView
-        android:id="@+id/tv_pub_name_dialog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center_horizontal"
-        android:text="@string/pub_name_default"
-        android:textSize="24sp" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/linearLayoutDialog"
+        android:layout_width="275dp"
+        android:layout_height="500dp"
+        android:layout_marginBottom="35dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="35dp"
+        android:background="@color/colorPrimaryLight"
+        android:gravity="center"
         android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/textView2"
+            android:id="@+id/tv_pub_name_dialog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:text="@string/label_pub_description"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/tv_pub_description_dialog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:paddingLeft="10sp"
-            android:paddingRight="10sp"
-            android:text="-"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:text="@string/label_pub_address"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/tv_pub_address_dialog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:paddingLeft="10sp"
-            android:paddingRight="10sp"
-            android:text="-"
-            android:textSize="10sp" />
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:text="@string/label_pub_phone"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/tv_pub_phone_dialog"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5sp"
-            android:paddingLeft="10sp"
-            android:paddingRight="10sp"
-            android:text="-"
-            android:textAlignment="center"
-            android:textSize="10sp" />
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:text="@string/pub_name_default"
+            android:textSize="24sp" />
 
         <LinearLayout
+            android:id="@+id/linearLayout3"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp">
 
             <TextView
-                android:id="@+id/textView11"
-                android:layout_width="wrap_content"
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:width="1dp"
                 android:padding="5sp"
-                android:text="@string/label_tracks"
+                android:text="@string/label_pub_description"
                 android:textAlignment="center" />
 
             <TextView
-                android:id="@+id/textView12"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_pub_description_dialog"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:width="1dp"
                 android:padding="5sp"
-                android:text="@string/label_pub_affinity"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"
+                android:text="-"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5sp"
+                android:text="@string/label_pub_address"
                 android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/tv_pub_address_dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5sp"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"
+                android:text="-"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5sp"
+                android:text="@string/label_pub_phone"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/tv_pub_phone_dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5sp"
+                android:paddingLeft="10sp"
+                android:paddingRight="10sp"
+                android:text="-"
+                android:textAlignment="center"
+                android:textSize="10sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textView11"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:width="1dp"
+                    android:padding="5sp"
+                    android:text="@string/label_tracks"
+                    android:textAlignment="center" />
+
+                <TextView
+                    android:id="@+id/textView12"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:width="1dp"
+                    android:padding="5sp"
+                    android:text="@string/label_pub_affinity"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_pub_tracks_dialog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:width="1dp"
+                    android:padding="5sp"
+                    android:text="0"
+                    android:textAlignment="center"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tv_pub_affinity_dialog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:width="1dp"
+                    android:padding="5sp"
+                    android:text="@string/tv_default_affinity"
+                    android:textAlignment="center"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:id="@+id/linearMapDialog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical">
+
+            <fragment
+                android:id="@+id/map_pub_info_dialog"
+                class="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_gravity="center" />
+
+            <!--<TextView
+                android:id="@+id/textView17"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                tools:layout_editor_absoluteX="75dp"
+                tools:layout_editor_absoluteY="323dp" />-->
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/linear_buttons"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
             android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tv_pub_tracks_dialog"
+            <Button
+                android:id="@+id/button_go_maps_pub_dialog"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:width="1dp"
-                android:padding="5sp"
-                android:text="0"
-                android:textAlignment="center"
-                android:textSize="10sp" />
+                android:text="@string/button_go_gmaps" />
 
-            <TextView
-                android:id="@+id/tv_pub_affinity_dialog"
+            <Button
+                android:id="@+id/button_call_pub_dialog"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:width="1dp"
-                android:padding="5sp"
-                android:text="@string/tv_default_affinity"
-                android:textAlignment="center"
-                android:textSize="10sp" />
+                android:text="@string/button_call_pub" />
+
         </LinearLayout>
 
     </LinearLayout>
 
 
-    <LinearLayout
-        android:id="@+id/linearMapDialog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:orientation="vertical">
-
-        <fragment
-            android:id="@+id/map_pub_info_dialog"
-            class="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="match_parent"
-            android:layout_height="130dp"
-            android:layout_gravity="center" />
-
-        <!--<TextView
-            android:id="@+id/textView17"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView"
-            tools:layout_editor_absoluteX="75dp"
-            tools:layout_editor_absoluteY="323dp" />-->
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linear_buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/button_go_maps_pub_dialog"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/button_go_gmaps" />
-
-        <Button
-            android:id="@+id/button_call_pub_dialog"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/button_call_pub" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

@@ -157,6 +157,7 @@ public class SpotifyApiController {
                     jsonTracks.put(track);
                 }
                 ApiController apiController = ApiController.getInstance();
+                apiController.requestNotifyPlaylistsCompiled();
                 apiController.requestInsertUserTracks(requestUpdate, user.getEmail(), jsonTracks);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -165,25 +166,6 @@ public class SpotifyApiController {
             Log.d("DB", "Error al intentar insertar las canciones en la BBDD local, contexto no inicializado");
         }
     }
-
-    /* private void insertUserTracksOnline(String email, JSONArray tracks, int tracksLeft) {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("operation", "insertUserTracks");
-            json.put("requestUpdate", requestUpdate);
-            if(requestUpdate) requestUpdate = false;
-            json.put("tracksLeft", tracksLeft);
-            json.put("email", email);
-            json.put("tracks", tracks);
-            //Log.d("SPOTIFYAPI", "Intentando enviar JSON a MySQL para su guardado");
-            //Log.d("SPOTIFYAPI", json.toString());
-            DbTask task = new DbTask(delegate);
-            task.execute(json);
-            Log.d(LOG_TAG, json.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }*/
 
     public static String getArtists(List<ArtistSimple> ts) {
         StringBuilder artists = new StringBuilder();

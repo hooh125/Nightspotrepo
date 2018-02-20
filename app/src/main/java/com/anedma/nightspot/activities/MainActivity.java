@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -17,7 +18,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -76,7 +79,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FloatingActionButton fab;
     private FusedLocationProviderClient mFusedLocationClient;
     private SpotifyApiController controller;
-    private ProgressBar progressBar;
+    private AppCompatTextView tvProgress;
+    private ProgressBar pb_circle;
+    private ProgressBar pb_horizontal;
     private TextView tvPubName;
     private TextView tvPubTracks;
     private TextView tvUserTracks;
@@ -115,6 +120,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             loadUserPub();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        apiController.setDelegate(this);
+        super.onResume();
     }
 
     private void loadUserPub() {
@@ -191,7 +202,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Button buttonReloadLibrary = content.findViewById(R.id.button_reload_library);
             Button buttonAddPub = content.findViewById(R.id.button_add_pub);
             final LinearLayout loadingLibraryLayout = findViewById(R.id.layout_loading_library);
-            progressBar = findViewById(R.id.pb_load_tracks);
+            pb_horizontal = findViewById(R.id.pb_load_tracks_horizontal);
+            pb_circle = findViewById(R.id.pb_load_tracks_circle);
+            tvProgress = findViewById(R.id.tv_progress);
             buttonAddPub.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -317,6 +330,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    private void showLogoutDialog() {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        ApiController.getInstance().requestDeleteUser(user.getEmail());
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        dialog.dismiss();
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(R.string.logout_question).setPositiveButton(android.R.string.yes, dialogClickListener)
+                .setNegativeButton(android.R.string.no, dialogClickListener).show();
+    }
+
+    private void logout() {
+        user.killInstance();
+        Intent intent = new Intent(context, LoginActivity.class);
+        intent.putExtra("clear", true);
+        startActivity(intent);
+        finish();
+    }
+
     @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -354,8 +395,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.settings_option) {
-            Toast.makeText(this, "Prueba de boton", Toast.LENGTH_SHORT).show();
+        if (item.getItemId() == R.id.logout_option) {
+            showLogoutDialog();
         } else if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
@@ -403,7 +444,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void deleteUserResponse() {
-
+        logout();
     }
 
     @Override
@@ -421,10 +462,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void requestUserPlaylistsCompleted() {
+        pb_circle.setVisibility(View.GONE);
+        pb_horizontal.setVisibility(View.VISIBLE);
+        tvProgress.setText(R.string.tv_loading_content);
+    }
+
+    @Override
     public void insertTracksProgressUpdate(int totalTracks, int tracksRemaining) {
-        if(progressBar != null) {
-            progressBar.setMax(totalTracks);
-            progressBar.setProgress(totalTracks - tracksRemaining);
+        if(pb_horizontal != null) {
+            pb_horizontal.setMax(totalTracks);
+            pb_horizontal.setProgress(totalTracks - tracksRemaining);
         }
     }
 

@@ -1,43 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/login_activity"
     android:layout_width="match_parent"
-    android:orientation="vertical"
-    android:gravity="bottom"
     android:layout_height="match_parent"
+    android:gravity="bottom"
+    android:orientation="vertical"
     tools:context="com.anedma.nightspot.activities.LoginActivity">
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
         android:layout_gravity="top"
-        android:background="@drawable/login_bg" />
+        android:background="@drawable/login_bg"
+        app:layout_constraintBottom_toTopOf="@+id/spotifySignInButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <LinearLayout
         android:id="@+id/layout_loading_library"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_gravity="top"
+        android:background="@android:color/white"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/spotifySignInButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <android.support.v7.widget.AppCompatTextView
+            android:id="@+id/tv_progress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/tv_loading_content"
+            android:text="@string/tv_loading_user_playlists"
             android:textAlignment="center" />
 
         <ProgressBar
-            android:id="@+id/pb_load_tracks"
-            style="?android:attr/progressBarStyleHorizontal"
+            android:id="@+id/pb_load_tracks_circle"
+            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_gravity="bottom"
             android:progress="0"
             android:visibility="visible" />
+
+        <ProgressBar
+            android:id="@+id/pb_load_tracks_horizontal"
+            style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_gravity="bottom"
+            android:progress="0"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <Button
@@ -53,7 +74,30 @@
         android:paddingStart="60dp"
         android:text="@string/common_spotify_signin_button_text_long"
         android:textColor="@android:color/white"
-        android:textSize="13sp" />
+        android:textSize="13sp"
+        app:layout_constraintBottom_toTopOf="@+id/googleSignInButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/frame_fadeout_spotify"
+        android:layout_width="0dp"
+        android:layout_height="75dp"
+        android:alpha="0.8"
+        android:background="@android:color/black"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/spotifySignInButton"
+        app:layout_constraintEnd_toEndOf="@+id/spotifySignInButton"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:srcCompat="@drawable/ic_done_tick_white" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/googleSignInButton"
@@ -68,6 +112,30 @@
         android:paddingStart="60dp"
         android:text="@string/common_signin_button_text_long"
         android:textColor="@color/googleSignInText"
-        android:textSize="13sp" />
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/frame_fadeout_google"
+        android:layout_width="0dp"
+        android:layout_height="75dp"
+        android:alpha="0.8"
+        android:background="@android:color/black"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:srcCompat="@drawable/ic_done_tick_white" />
+    </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>

@@ -58,4 +58,8 @@
     <string name="tv_loading_pub_tracks">Loading tracks</string>
     <string name="tv_switch_starting">Starting</string>
     <string name="tv_switch_stopping">Stopping</string>
+    <string name="logout">Logout</string>
+    <string name="logout_question">Do you want to Logout?</string>
+    <string name="logout_success">You have logout</string>
+    <string name="tv_loading_user_playlists">Collecting user info</string>
 </resources>

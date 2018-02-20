@@ -4,9 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -25,6 +28,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
@@ -40,13 +44,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final String[] SCOPES = {"playlist-read-private", "playlist-read-collaborative", "user-follow-read", "user-library-read", "user-top-read", "user-read-email", "playlist-read-collaborative"};
     private Button loginGoogleButton;
     private Button loginSpotifyButton;
-    private static boolean loginGoogle = false;
-    private static boolean loginSpotify = false;
-    private static boolean isPub = false;
-    public static boolean requestSpotifyData = false;
-    public GoogleSignInAccount account;
-    public ProgressBar progressBar;
-    private GoogleSignInClient mGoogleSignIn;
+    private LinearLayout fadeOutGoogle;
+    private LinearLayout fadeOutSpotify;
+    private boolean loginGoogle = false;
+    private boolean loginSpotify = false;
+    private boolean isPub = false;
+    private boolean requestSpotifyData = false;
+    private GoogleSignInAccount account;
+    private ProgressBar pb_circle;
+    private ProgressBar pb_horizontal;
+    private AppCompatTextView tvProgress;
+    private LinearLayout layoutLoadingLibrary;
+    private static GoogleSignInClient mGoogleSignIn;
     private AuthenticationRequest.Builder builder;
     private SpotifyApiController controller;
     private ApiController apiController;
@@ -59,9 +68,25 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         apiController.setDelegate(this);
         setupUI();
 
-        //Google Login
-        GoogleSignInOptions mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
-        mGoogleSignIn = GoogleSignIn.getClient(this, mGoogleSignInOptions);
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            Boolean clearAccount = extras.getBoolean("clear");
+            if(clearAccount) {
+                if(mGoogleSignIn != null) mGoogleSignIn.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(getApplicationContext(), R.string.logout_success, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), R.string.logout_success, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        }
+
+        if(mGoogleSignIn == null) {
+            //Google Login
+            GoogleSignInOptions mGoogleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+            mGoogleSignIn = GoogleSignIn.getClient(this, mGoogleSignInOptions);
+        }
 
         //Spotify Login
         builder = new AuthenticationRequest.Builder(SPOTIFY_CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_SPOTIFY_URI);
@@ -121,7 +146,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Log.w(LOG_TAG, "El Login con Google ha fallado con el código: " + e.getStatusCode());
             Log.w(LOG_TAG, "Mensaje: " + e.getMessage());
             Log.d(LOG_TAG, "LOGIN ERRONEO");
-            Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
+            if(e.getStatusCode() != 12501) { //El código de error 12501 corresponde a una petición no completada, por eso la ignoramos
+                Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
+            }
         }
     }
 
@@ -136,6 +163,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 controller.setAccessToken(accessToken);
                 loginSpotifyButton.setEnabled(false);
                 loginSpotify = true;
+                animateFadeOut(fadeOutSpotify);
                 checkLoginStatus();
                 break;
             case ERROR:
@@ -150,6 +178,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void setupUI() {
         loginGoogleButton = findViewById(R.id.googleSignInButton);
         loginSpotifyButton = findViewById(R.id.spotifySignInButton);
+        fadeOutGoogle = findViewById(R.id.frame_fadeout_google);
+        fadeOutSpotify = findViewById(R.id.frame_fadeout_spotify);
         loginGoogleButton.setOnClickListener(this);
         loginSpotifyButton.setOnClickListener(this);
     }
@@ -176,10 +206,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.d("LOGINACTIVITY", "Intentando recoger librería del usuario");
                 controller.setRequestUpdate();
                 controller.getUserData();
-                if(progressBar == null) {
-                    LinearLayout layoutLoadingLibrary = findViewById(R.id.layout_loading_library);
+                if(pb_circle == null || pb_horizontal == null) {
+                    layoutLoadingLibrary = findViewById(R.id.layout_loading_library);
                     layoutLoadingLibrary.setVisibility(View.VISIBLE);
-                    progressBar = findViewById(R.id.pb_load_tracks);
+                    tvProgress = findViewById(R.id.tv_progress);
+                    pb_circle = findViewById(R.id.pb_load_tracks_circle);
+                    pb_horizontal = findViewById(R.id.pb_load_tracks_horizontal);
                     //Bloquamos la interacción del usuario con la interfaz
                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
@@ -204,8 +236,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         user.setPhotoUri(account.getPhotoUrl());
         requestSpotifyData = !alreadyRegistered && !isPub;
         loginGoogle = true;
+        animateFadeOut(fadeOutGoogle);
         checkLoginStatus();
         Log.d("GOOGLE", "LOGIN SATISFACTORIO");
+    }
+
+    private void animateFadeOut(LinearLayout layout) {
+        Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
+        if (layout.getVisibility() == View.INVISIBLE) {
+            layout.setVisibility(View.VISIBLE);
+            layout.startAnimation(fadeOut);
+        }
     }
 
     @Override
@@ -217,10 +258,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    public void requestUserPlaylistsCompleted() {
+        pb_circle.setVisibility(View.GONE);
+        pb_horizontal.setVisibility(View.VISIBLE);
+        tvProgress.setText(R.string.tv_loading_content);
+    }
+
+    @Override
     public void insertTracksProgressUpdate(int totalTracks, int tracksRemaining) {
-        if(progressBar != null) {
-            progressBar.setMax(totalTracks);
-            progressBar.setProgress(totalTracks - tracksRemaining);
+        if(pb_horizontal != null) {
+            pb_horizontal.setMax(totalTracks);
+            pb_horizontal.setProgress(totalTracks - tracksRemaining);
         }
     }
 
@@ -236,56 +284,5 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
-    /*@Override
-    public void processFinish(JSONObject jsonObject) {
-        if(jsonObject == null) {
-            Log.d("LOGINACTIVITY", "El servidor no ha devuelto respuesta alguna");
-        } else {
-            Log.d("JSON", jsonObject.toString());
-            try {
-                String operation = jsonObject.getString("operation");
-                switch (operation) {
-                    case "insertUser":
-                        boolean error = jsonObject.getBoolean("error");
-                        loginGoogleButton.setEnabled(error);
-                        if(!error) {
-                            boolean alreadyRegistered;
-                            alreadyRegistered = jsonObject.getBoolean("alreadyRegistered");
-                            isPub = jsonObject.getBoolean("isPub");
-                            User user = User.getInstance();
-                            user.setEmail(account.getEmail());
-                            user.setName(account.getGivenName());
-                            user.setLastName(account.getFamilyName());
-                            user.setPub(isPub);
-                            user.setPhotoUri(account.getPhotoUrl());
-                            requestSpotifyData = !alreadyRegistered && !isPub;
-                            loginGoogle = true;
-                            checkLoginStatus();
-                            Log.d("GOOGLE", "LOGIN SATISFACTORIO");
-                        } else {
-                            loginGoogleButton.setEnabled(true);
-                            Toast.makeText(this, "Error al iniciar sesión con Google", Toast.LENGTH_LONG).show();
-                        }
-                        break;
-                    case "insertUserTracks":
-                        int tracksLeft = jsonObject.getInt("tracksLeft");
-                        int tracksRecorded = jsonObject.getInt("tracksRecorded");
-                        Log.d("LOGINACTIVITY", "El servidor ha insertado:" + tracksRecorded + " canciones y faltan " + tracksLeft + " por insertar");
-                        if(tracksLeft == 0) {
-                            requestSpotifyData = false;
-                            progressBar.setProgress(controller.getTracksNumber());
-                            checkLoginStatus();
-                        } else {
-                            progressBar.setProgress(controller.getTracksNumber() - tracksLeft);
-                        }
-                        break;
-                    default:
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }*/
 
 }

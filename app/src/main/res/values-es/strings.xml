@@ -54,4 +54,8 @@
     <string name="tv_loading_pub_tracks">Cargando canciones</string>
     <string name="tv_switch_starting">Iniciando…</string>
     <string name="tv_switch_stopping">Deteniendo…</string>
+    <string name="logout">Salir</string>
+    <string name="logout_question">¿Quieres cerrar sesión?</string>
+    <string name="logout_success">Has cerrado sesión</string>
+    <string name="tv_loading_user_playlists">Recopilando información del usuario</string>
 </resources>

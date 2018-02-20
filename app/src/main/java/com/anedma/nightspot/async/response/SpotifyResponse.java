@@ -7,5 +7,6 @@ package com.anedma.nightspot.async.response;
 public interface SpotifyResponse extends ApiResponse {
 
     void requestInsertTracksResponse();
+    void requestUserPlaylistsCompleted();
     void insertTracksProgressUpdate(int totalTracks, int tracksRemaining);
 }

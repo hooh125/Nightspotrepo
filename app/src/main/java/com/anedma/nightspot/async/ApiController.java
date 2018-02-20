@@ -182,6 +182,11 @@ public class ApiController implements AsyncResponse {
         }
     }
 
+    public void requestNotifyPlaylistsCompiled() {
+        SpotifyResponse spotifyResponse = (SpotifyResponse) delegate;
+        spotifyResponse.requestUserPlaylistsCompleted();
+    }
+
     //RESULTADOS
 
     private void requestOperation(JSONObject jsonObject) {
@@ -322,7 +327,6 @@ public class ApiController implements AsyncResponse {
         PubResponse pubResponse = (PubResponse) delegate;
         pubResponse.pubResponse(pub);
     }
-
 
     //MÉTODOS INTERNOS
 

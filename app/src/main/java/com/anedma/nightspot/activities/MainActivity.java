@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String LOG_TAG = "MAINACTIVITY";
     private static final int PERMISSION_REQUEST_LOCATION = 154;
+    private static final int PERMISSION_REQUEST_RECORD = 158;
     private Context context;
     private User user;
     private Pub pub;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupFAB();
 
         requestPermissionForLocation();
+        requestPermissionForMicrophone();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -325,6 +327,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         PERMISSION_REQUEST_LOCATION);
+
+            }
+        }
+    }
+
+    private void requestPermissionForMicrophone() {
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.RECORD_AUDIO)) {
+                Toast.makeText(this, "Se necesita permiso para poder cargar tu ubicación", Toast.LENGTH_LONG).show();
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO},
+                        PERMISSION_REQUEST_RECORD);
 
             }
         }
